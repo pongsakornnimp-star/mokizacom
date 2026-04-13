@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mokiza Commission - ระบบจัดการค่าคอมมิชชั่น</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ฟอนต์ Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            background-color: #F4F6F8; /* สีพื้นหลังเทาอ่อน */
+        }
+        input.no-spinner::-webkit-outer-spin-button,
+        input.no-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input.no-spinner { -moz-appearance: textfield; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-slate-800 pb-24">
+
+    <!-- Top Bar -->
+    <header class="sticky top-0 z-40 bg-white px-5 py-3.5 flex justify-between items-center shadow-sm border-b border-slate-100">
+        <div class="flex items-center gap-3">
+            <div class="bg-[#10B981] w-9 h-9 rounded-[10px] flex items-center justify-center text-white">
+                <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+            </div>
+            <h1 class="font-bold text-xl text-slate-800 tracking-wide">Mokiza Com</h1>
+        </div>
+        <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 transition-colors">
+            <i data-lucide="settings" class="w-6 h-6"></i>
+        </button>
+    </header>
+
+    <div class="max-w-2xl mx-auto space-y-4">
+        
+        <!-- Settings Panel -->
+        <div id="settingsPanel" class="hidden mx-4 mt-4 bg-slate-800 p-5 rounded-[24px] text-white shadow-xl animate-in">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> ตั้งค่าระบบ</h2>
+            </div>
+            <label class="block text-[11px] text-slate-400 mb-1 uppercase font-bold">Google Apps Script URL</label>
+            <input type="text" id="scriptUrlInput" oninput="saveUrl(this.value)" placeholder="https://script.google.com/macros/s/.../exec"
+                class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm outline-none focus:ring-1 focus:ring-emerald-500">
+        </div>
+
+        <!-- Tab Navigation (สลับแสดง View เป็น Default) -->
+        <div class="flex bg-[#EEF2F6] p-1.5 rounded-[16px] mx-4 mt-5">
+            <button onclick="switchTab('record')" id="tab-record" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[12px] text-[14px] font-medium transition-all text-slate-400">
+                <i data-lucide="edit-3" class="w-4 h-4"></i> ลงบิล
+            </button>
+            <button onclick="switchTab('view')" id="tab-view" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all bg-white text-blue-600 shadow-sm">
+                <i data-lucide="list-ordered" class="w-4 h-4"></i> ยอดค้าง
+            </button>
+        </div>
+
+        <!-- Notification Area -->
+        <div id="statusMessage" class="hidden mx-4 p-3 rounded-xl flex items-center justify-between text-sm animate-in">
+            <p id="statusText" class="font-bold flex items-center gap-2"></p>
+            <button onclick="hideStatus()"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <!-- TAB 1: RECORD FORM (ซ่อนไว้ก่อน) -->
+        <main id="recordTab" class="hidden animate-in">
+            <form onsubmit="handleFormSubmit(event)">
+                
+                <!-- Card 1: ข้อมูลบิล -->
+                <div class="bg-white p-5 rounded-[24px] mx-4 mb-4 border border-slate-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] space-y-4">
+                    <div>
+                        <label class="text-[12px] font-bold text-slate-400 mb-1.5 block">วัน/เวลาที่บันทึก</label>
+                        <input type="datetime-local" id="f-recordDate" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-[14px] text-[14px] outline-none focus:border-emerald-500 transition-colors text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[12px] font-bold text-slate-400 mb-1.5 block">ชื่อเรือ</label>
+                        <div class="relative">
+                            <i data-lucide="ship" class="absolute left-3.5 top-3.5 text-slate-300 w-5 h-5"></i>
+                            <input type="text" id="f-boatName" list="boat-suggestions" class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-[14px] text-[14px] outline-none focus:border-emerald-500 transition-colors placeholder-slate-300 text-slate-700" placeholder="ระบุชื่อเรือ...">
+                            <datalist id="boat-suggestions"></datalist>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: รายละเอียดคอมมิชชั่น -->
+                <div class="bg-white p-5 rounded-[24px] mx-4 mb-4 border border-slate-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                    <h3 class="text-[14px] font-bold text-slate-800 mb-4">รายละเอียดคอมมิชชั่น</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">1. Food</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-300 text-[13px] font-bold">฿</span>
+                                <input type="number" id="f-food" oninput="updateTotal()" inputmode="decimal" class="no-spinner w-full pl-7 pr-3 py-2.5 bg-white border border-slate-200 rounded-[12px] text-[14px] font-semibold outline-none focus:border-emerald-500 transition-colors text-slate-700">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">2. Jet+B</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-300 text-[13px] font-bold">฿</span>
+                                <input type="number" id="f-jetBanana" oninput="updateTotal()" inputmode="decimal" class="no-spinner w-full pl-7 pr-3 py-2.5 bg-white border border-slate-200 rounded-[12px] text-[14px] font-semibold outline-none focus:border-emerald-500 transition-colors text-slate-700">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">3. Bike</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-300 text-[13px] font-bold">฿</span>
+                                <input type="number" id="f-motorbike" oninput="updateTotal()" inputmode="decimal" class="no-spinner w-full pl-7 pr-3 py-2.5 bg-white border border-slate-200 rounded-[12px] text-[14px] font-semibold outline-none focus:border-emerald-500 transition-colors text-slate-700">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">5. Other</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-300 text-[13px] font-bold">฿</span>
+                                <input type="number" id="f-other" oninput="updateTotal()" inputmode="decimal" class="no-spinner w-full pl-7 pr-3 py-2.5 bg-white border border-slate-200 rounded-[12px] text-[14px] font-semibold outline-none focus:border-emerald-500 transition-colors text-slate-700">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sunbed Section -->
+                    <div class="bg-[#F4F8FE] p-4 rounded-[16px] flex items-center justify-between border border-[#E5EDFB] mt-4">
+                        <div class="flex items-center gap-2 flex-1">
+                            <label class="text-[12px] font-bold text-blue-600 whitespace-nowrap">4. SUNBED (เตียงละ ฿30)</label>
+                            <input type="number" id="f-sunbedQty" oninput="updateTotal()" inputmode="numeric" class="w-16 p-2 bg-white border border-blue-200 rounded-lg text-center text-[14px] font-bold text-slate-700 outline-none focus:border-blue-400 transition-colors" placeholder="0">
+                        </div>
+                        <div class="text-right pl-2">
+                            <span class="text-[10px] text-blue-500 font-bold block leading-none">SUM</span>
+                            <span id="sunbedTotalText" class="text-xl font-bold text-blue-700">฿0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Check as Paid -->
+                    <label class="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-[16px] border border-slate-100 mt-4 cursor-pointer">
+                        <div class="relative flex items-center justify-center">
+                            <input type="checkbox" id="f-isPaid" class="peer w-5 h-5 appearance-none border border-slate-300 rounded-[4px] checked:bg-[#10B981] checked:border-[#10B981] transition-colors cursor-pointer">
+                            <i data-lucide="check" class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none"></i>
+                        </div>
+                        <span class="text-[14px] font-bold text-slate-700 select-none">จ่ายเงินเรียบร้อยแล้ว (Check as Paid)</span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="px-4">
+                    <button type="submit" id="submitBtn" class="w-full py-4 bg-[#10B981] hover:bg-[#0EA5E9] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50">
+                        <i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูล
+                    </button>
+                </div>
+            </form>
+
+            <!-- ยอดรวมรวมมิตร -->
+            <div class="mx-4 mt-6 mb-8 bg-slate-900 p-6 rounded-[24px] text-white shadow-xl flex items-center justify-between">
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest block">Total Commission</span>
+                    <p id="totalDisplay" class="text-3xl font-bold tracking-tight">฿ 0.00</p>
+                </div>
+                <div class="p-3 bg-white/10 rounded-[16px]">
+                    <i data-lucide="wallet" class="text-emerald-400 w-8 h-8"></i>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB 2: VIEW LIST (แสดงเป็นหน้าแรก) -->
+        <main id="viewTab" class="space-y-4 animate-in mx-4 pb-24">
+            <div class="space-y-3">
+                <div class="flex gap-2">
+                    <div class="flex-1 relative">
+                        <i data-lucide="search" class="absolute left-3 top-3 text-slate-300 w-4 h-4"></i>
+                        <input type="text" id="searchBox" oninput="renderRecords()" placeholder="ค้นหาชื่อเรือ..." class="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-[14px] text-sm outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <button onclick="fetchRecords()" class="p-2.5 bg-white border border-slate-200 rounded-[14px] text-slate-500 active:bg-slate-50 transition-colors">
+                        <div id="refreshSpinner"><i data-lucide="refresh-cw" class="w-5 h-5"></i></div>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="analyzeWithAI()" class="flex items-center justify-center gap-2 py-3 bg-purple-600 text-white rounded-[14px] font-bold text-[13px] shadow-sm active:scale-[0.98] transition-transform">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> AI วิเคราะห์
+                    </button>
+                    <button id="payAllBtn" onclick="openBulkConfirm()" class="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-[14px] font-bold text-[13px] shadow-sm active:scale-[0.98] transition-transform disabled:opacity-30">
+                        <i data-lucide="check-check" class="w-4 h-4"></i> จ่ายทั้งหมด
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center px-1">
+                    <select id="boatFilter" onchange="renderRecords()" class="text-[12px] font-semibold bg-slate-200/60 text-slate-700 border-none rounded-lg py-1.5 px-2 focus:ring-0 outline-none">
+                        <option value="">เรือทุกลำ</option>
+                    </select>
+                    <button onclick="togglePaidItems()" id="togglePaidBtn" class="text-[12px] font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-white text-slate-400 border-slate-200">
+                        <i data-lucide="eye-off" class="w-3 h-3"></i> ประวัติที่จ่ายแล้ว
+                    </button>
+                </div>
+            </div>
+
+            <div id="recordsList" class="space-y-3">
+                <!-- Records will be injected here -->
+                <div class="text-center py-20 text-slate-400">
+                    <div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-slate-100">
+                        <i data-lucide="ship" class="opacity-40 w-8 h-8"></i>
+                    </div>
+                    <p class="text-[14px] font-medium">ไม่มีข้อมูลที่จะแสดง</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Sticky Bottom Summary Bar -->
+    <div id="bottomBar" class="fixed bottom-0 inset-x-0 bg-white p-4 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-40 rounded-t-[24px] border-t border-slate-100 animate-in">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-50 p-2.5 rounded-[12px] text-emerald-500">
+                <i data-lucide="wallet" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">ยอดรวมที่ค้าง/แสดง</span>
+                <span id="grandTotalDisplay" class="text-xl font-bold text-emerald-500">฿0</span>
+            </div>
+        </div>
+        <div class="text-right">
+            <span class="text-[10px] text-slate-400 font-bold uppercase block">รายการ</span>
+            <span id="itemCountDisplay" class="text-lg font-bold text-slate-700">0 บิล</span>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+        <div class="bg-white rounded-[24px] p-8 w-full max-w-sm shadow-2xl animate-in">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-orange-50 rounded-[16px] mb-4 text-orange-500"><i data-lucide="alert-triangle" class="w-10 h-10"></i></div>
+                <h3 id="confirmTitle" class="text-xl font-bold text-slate-800 mb-2">จ่ายเงินแล้ว?</h3>
+                <p id="confirmDesc" class="text-slate-500 mb-6 text-[14px] font-medium leading-relaxed"></p>
+                <div class="flex flex-col gap-2 w-full">
+                    <button onclick="processPayment()" class="w-full py-3.5 bg-emerald-500 text-white font-bold rounded-[14px] shadow-sm active:scale-[0.98] transition-transform">ใช่ จ่ายเรียบร้อย</button>
+                    <button onclick="closeModal('confirmModal')" class="w-full py-3 text-slate-400 font-semibold rounded-[14px] hover:bg-slate-50 transition-colors">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="aiModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
+        <div class="bg-white w-full max-w-xl rounded-t-[24px] md:rounded-[24px] overflow-hidden flex flex-col max-h-[90vh] animate-in shadow-2xl">
+            <div class="bg-purple-600 p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 p-1.5 rounded-lg"><i data-lucide="brain-circuit" class="w-5 h-5"></i></div>
+                    <div>
+                        <h3 class="text-lg font-bold leading-none">Mokiza AI</h3>
+                    </div>
+                </div>
+                <button onclick="closeModal('aiModal')" class="p-1.5 hover:bg-black/10 rounded-full transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="aiContent" class="p-6 overflow-y-auto bg-white flex-1 text-slate-700 font-medium leading-relaxed whitespace-pre-wrap text-[14px]"></div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100">
+                <button onclick="closeModal('aiModal')" class="w-full py-3.5 bg-slate-800 hover:bg-slate-900 transition-colors text-white rounded-[14px] font-bold">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Progress Overlay -->
+    <div id="progressOverlay" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-6">
+        <div class="bg-white p-6 rounded-[24px] shadow-2xl w-full max-w-xs text-center space-y-4">
+            <div class="animate-spin inline-block"><i data-lucide="loader-2" class="text-blue-500 w-8 h-8"></i></div>
+            <div class="space-y-1">
+                <p class="font-bold text-slate-800 uppercase text-[11px] tracking-widest">Updating Database</p>
+                <p id="progressText" class="text-2xl font-bold text-blue-600">0 / 0</p>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="progressBar" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const apiKey = ""; // ใส่ Gemini API Key ของคุณที่นี่
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mokiza-commission';
+        let scriptUrl = localStorage.getItem('mokiza_script_url') || '';
+        let records = [];
+        let showPaidItems = false;
+        let currentTab = 'view'; // เริ่มต้นที่หน้ายอดค้าง
+        let pendingPayment = null; 
+
+        // --- Initialization ---
+        window.onload = () => {
+            document.getElementById('scriptUrlInput').value = scriptUrl;
+            document.getElementById('f-recordDate').value = getLocalDatetime();
+            lucide.createIcons();
+            updateTotal();
+            
+            // เปิดหน้าขึ้นมาให้โหลดข้อมูลทันทีถ้ามี URL
+            if (scriptUrl) fetchRecords();
+        };
+
+        // --- Helpers ---
+        function getLocalDatetime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            return now.toISOString().slice(0, 16);
+        }
+
+        function normalizeName(name) {
+            return (name || "").trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, '');
+        }
+
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            return d.toLocaleString('th-TH', { 
+                day: '2-digit', month: 'short', year: '2-digit', 
+                hour: '2-digit', minute: '2-digit' 
+            });
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusBox = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            statusText.innerText = message;
+            statusBox.className = `mx-4 p-3 rounded-xl flex items-center justify-between text-[14px] animate-in ${type === 'success' ? 'bg-[#10B981]' : 'bg-red-500'} text-white shadow-md`;
+            statusBox.classList.remove('hidden');
+            setTimeout(hideStatus, 5000);
+            lucide.createIcons();
+        }
+
+        function hideStatus() {
+            document.getElementById('statusMessage').classList.add('hidden');
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('hidden');
+        }
+
+        function saveUrl(val) {
+            scriptUrl = val;
+            localStorage.setItem('mokiza_script_url', val);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // --- Tab Switching ---
+        function switchTab(tab) {
+            currentTab = tab;
+            const recordTab = document.getElementById('recordTab');
+            const viewTab = document.getElementById('viewTab');
+            const bottomBar = document.getElementById('bottomBar');
+            const btnRecord = document.getElementById('tab-record');
+            const btnView = document.getElementById('tab-view');
+
+            if (tab === 'record') {
+                recordTab.classList.remove('hidden');
+                viewTab.classList.add('hidden');
+                bottomBar.classList.add('hidden');
+                btnRecord.className = "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all bg-white text-[#10B981] shadow-sm";
+                btnView.className = "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[12px] text-[14px] font-medium transition-all text-slate-400";
+            } else {
+                recordTab.classList.add('hidden');
+                viewTab.classList.remove('hidden');
+                bottomBar.classList.remove('hidden');
+                btnRecord.className = "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[12px] text-[14px] font-medium transition-all text-slate-400";
+                btnView.className = "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all bg-white text-blue-600 shadow-sm";
+                if (records.length === 0 && scriptUrl) fetchRecords();
+            }
+            lucide.createIcons();
+        }
+
+        // --- Logic: Calculation ---
+        function updateTotal() {
+            const food = parseFloat(document.getElementById('f-food').value) || 0;
+            const jet = parseFloat(document.getElementById('f-jetBanana').value) || 0;
+            const bike = parseFloat(document.getElementById('f-motorbike').value) || 0;
+            const other = parseFloat(document.getElementById('f-other').value) || 0;
+            const sbQty = parseFloat(document.getElementById('f-sunbedQty').value) || 0;
+            const sbVal = sbQty * 30;
+
+            document.getElementById('sunbedTotalText').innerText = `฿${sbVal.toLocaleString()}`;
+            const total = food + jet + bike + other + sbVal;
+            document.getElementById('totalDisplay').innerText = `฿ ${total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+        }
+
+        // --- Logic: Submission ---
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const boatName = document.getElementById('f-boatName').value.trim();
+            if (!boatName) return showStatus('กรุณากรอกชื่อเรือ', 'error');
+            if (!scriptUrl) return showStatus('กรุณาตั้งค่า URL ในฟันเฟือง ⚙️', 'error');
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i> กำลังบันทึก...`;
+            lucide.createIcons();
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'save');
+                formData.append('id', Date.now().toString());
+                formData.append('recordDate', document.getElementById('f-recordDate').value);
+                formData.append('boatName', boatName);
+                formData.append('food', document.getElementById('f-food').value || 0);
+                formData.append('jetBanana', document.getElementById('f-jetBanana').value || 0);
+                formData.append('motorbike', document.getElementById('f-motorbike').value || 0);
+                formData.append('sunbedQty', document.getElementById('f-sunbedQty').value || 0);
+                formData.append('other', document.getElementById('f-other').value || 0);
+                formData.append('isPaid', document.getElementById('f-isPaid').checked);
+
+                await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: formData });
+                
+                showStatus('บันทึกบิลสำเร็จ!');
+                e.target.reset();
+                document.getElementById('f-recordDate').value = getLocalDatetime();
+                updateTotal();
+                records = []; // รีเซ็ตเพื่อดึงข้อมูลใหม่ตอนกดไปหน้ายอดค้าง
+            } catch (err) {
+                showStatus('เกิดข้อผิดพลาดในการบันทึก', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูล`;
+                lucide.createIcons();
+            }
+        }
+
+        // --- Logic: Fetch & Render ---
+        async function fetchRecords() {
+            if (!scriptUrl) return showStatus('กรุณาตั้งค่า URL ในฟันเฟือง', 'error');
+            
+            const spinner = document.getElementById('refreshSpinner');
+            spinner.classList.add('animate-spin');
+            
+            try {
+                const res = await fetch(`${scriptUrl}?t=${Date.now()}`);
+                const json = await res.json();
+                if (json.result === 'success') {
+                    records = json.data;
+                    updateBoatDatalist();
+                    renderRecords();
+                }
+            } catch (err) {
+                showStatus('ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่', 'error');
+            } finally {
+                spinner.classList.remove('animate-spin');
+            }
+        }
+
+        function updateBoatDatalist() {
+            const datalist = document.getElementById('boat-suggestions');
+            const filterSelect = document.getElementById('boatFilter');
+            const boatMap = new Map();
+            
+            records.forEach(r => {
+                if (!r.boatName) return;
+                const norm = normalizeName(r.boatName);
+                if (!boatMap.has(norm)) boatMap.set(norm, r.boatName.trim());
+            });
+
+            const sortedNames = Array.from(boatMap.values()).sort((a,b) => a.localeCompare(b));
+            
+            datalist.innerHTML = sortedNames.map(name => `<option value="${name}">`).join('');
+            
+            const currentVal = filterSelect.value;
+            filterSelect.innerHTML = `<option value="">เรือทุกลำ</option>` + 
+                sortedNames.map(name => `<option value="${name}" ${currentVal === name ? 'selected' : ''}>${name}</option>`).join('');
+        }
+
+        function renderRecords() {
+            const list = document.getElementById('recordsList');
+            const query = normalizeName(document.getElementById('searchBox').value);
+            const filter = normalizeName(document.getElementById('boatFilter').value);
+            
+            const filtered = records.filter(r => {
+                if (!showPaidItems && r.isPaid) return false;
+                const rNorm = normalizeName(r.boatName);
+                return (query === '' || rNorm.includes(query)) && (filter === '' || rNorm === filter);
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="text-center py-20 text-slate-400"><div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-slate-100"><i data-lucide="ship" class="opacity-40 w-8 h-8"></i></div><p class="text-[14px] font-medium">ไม่พบข้อมูล</p></div>`;
+                document.getElementById('grandTotalDisplay').innerText = "฿0";
+                document.getElementById('itemCountDisplay').innerText = "0 บิล";
+                lucide.createIcons();
+                return;
+            }
+
+            let gTotal = 0;
+            list.innerHTML = filtered.map(item => {
+                gTotal += (parseFloat(item.total) || 0);
+                const sVal = item.sunbedValue || (item.sunbedQty * 30);
+                return `
+                <div class="bg-white rounded-[20px] p-4 shadow-sm border border-slate-100 flex flex-col gap-3">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2.5 rounded-[12px] ${item.isPaid ? 'bg-emerald-50 text-emerald-500' : 'bg-orange-50 text-orange-500'}">
+                                <i data-lucide="ship" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-[15px] leading-none mb-1">${item.boatName}</h4>
+                                <span class="text-[11px] text-slate-400 font-medium">${formatDisplayDate(item.recordDate)}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-tight">Net Total</span>
+                            <span class="text-lg font-bold ${item.isPaid ? 'text-emerald-500' : 'text-slate-800'}">฿${Number(item.total).toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-y border-slate-50 px-1 overflow-x-hidden">
+                        <div class="flex gap-4 overflow-x-auto no-scrollbar">
+                            <div class="text-center min-w-[35px]"><span class="text-[10px] text-slate-400 font-semibold block">F</span><span class="text-[12px] font-bold text-slate-700">${item.food || 0}</span></div>
+                            <div class="text-center min-w-[35px]"><span class="text-[10px] text-slate-400 font-semibold block">J</span><span class="text-[12px] font-bold text-slate-700">${item.jetBanana || 0}</span></div>
+                            <div class="text-center min-w-[35px]"><span class="text-[10px] text-slate-400 font-semibold block">B</span><span class="text-[12px] font-bold text-slate-700">${item.motorbike || 0}</span></div>
+                            <div class="text-center min-w-[35px]"><span class="text-[10px] text-slate-400 font-semibold block text-blue-500">S</span><span class="text-[12px] font-bold text-blue-600">${sVal || 0}</span></div>
+                            <div class="text-center min-w-[35px]"><span class="text-[10px] text-slate-400 font-semibold block">O</span><span class="text-[12px] font-bold text-slate-700">${item.other || 0}</span></div>
+                        </div>
+                        <div class="flex items-center gap-2 pl-4 border-l border-slate-100">
+                            <button onclick="openSingleConfirm('${item.id}')" ${item.isPaid ? 'disabled' : ''} class="flex items-center justify-center rounded-[8px] border-[1.5px] transition-all p-1.5 ${item.isPaid ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 text-transparent hover:border-emerald-300'}">
+                                <i data-lucide="check" class="w-3.5 h-3.5 ${item.isPaid ? 'text-white' : 'text-transparent'}"></i>
+                            </button>
+                            <span class="text-[11px] font-bold uppercase ${item.isPaid ? 'text-emerald-500' : 'text-slate-400'}">${item.isPaid ? 'Paid' : 'Unpaid'}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('grandTotalDisplay').innerText = `฿${gTotal.toLocaleString()}`;
+            document.getElementById('itemCountDisplay').innerText = `${filtered.length} บิล`;
+            lucide.createIcons();
+        }
+
+        function togglePaidItems() {
+            showPaidItems = !showPaidItems;
+            const btn = document.getElementById('togglePaidBtn');
+            btn.innerHTML = showPaidItems ? `<i data-lucide="eye" class="w-3 h-3"></i> ประวัติที่จ่ายแล้ว` : `<i data-lucide="eye-off" class="w-3 h-3"></i> ประวัติที่จ่ายแล้ว`;
+            btn.className = `text-[12px] font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all ${showPaidItems ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-slate-400 border-slate-200'}`;
+            renderRecords();
+            lucide.createIcons();
+        }
+
+        // --- Logic: Payment Update ---
+        function openSingleConfirm(id) {
+            const item = records.find(r => r.id == id);
+            pendingPayment = { item, isAll: false };
+            document.getElementById('confirmTitle').innerText = "จ่ายเงินแล้วใช่ไหม?";
+            document.getElementById('confirmDesc').innerHTML = `ยืนยันว่าเรือ <span class="font-bold text-slate-800">${item.boatName}</span> จ่ายค่าคอม <span class="text-emerald-500 font-bold">฿${Number(item.total).toLocaleString()}</span> แล้ว`;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function openBulkConfirm() {
+            const unpaid = records.filter(r => !r.isPaid);
+            if (unpaid.length === 0) return;
+            pendingPayment = { isAll: true };
+            document.getElementById('confirmTitle').innerText = "จ่ายทั้งหมด?";
+            document.getElementById('confirmDesc').innerText = `ยืนยันการจ่ายเงินทั้งหมด ${unpaid.length} รายการ ที่กำลังค้างอยู่ใช่ไหม?`;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function processPayment() {
+            closeModal('confirmModal');
+            const isAll = pendingPayment.isAll;
+            const items = isAll ? records.filter(r => !r.isPaid) : [pendingPayment.item];
+            
+            const overlay = document.getElementById('progressOverlay');
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            
+            overlay.classList.remove('hidden');
+            let count = 0;
+            const total = items.length;
+            progressText.innerText = `0 / ${total}`;
+
+            try {
+                for (const item of items) {
+                    const fd = new FormData();
+                    fd.append('action', 'update_paid');
+                    fd.append('id', item.id);
+                    await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: fd });
+                    count++;
+                    progressText.innerText = `${count} / ${total}`;
+                    progressBar.style.width = `${(count / total) * 100}%`;
+                }
+                showStatus('อัปเดตสถานะสำเร็จ');
+                records = []; // เคลียร์ของเก่าทิ้งเพื่อโหลดใหม่
+                fetchRecords();
+            } catch (err) {
+                showStatus('การอัปเดตขัดข้องบางรายการ', 'error');
+            } finally {
+                overlay.classList.add('hidden');
+                progressBar.style.width = '0%';
+            }
+        }
+
+        // --- Logic: AI Analysis ---
+        async function analyzeWithAI() {
+            if (records.length === 0) return showStatus('กรุณาโหลดข้อมูลก่อนครับ', 'error');
+            if (!apiKey) return showStatus('ไม่ได้ใส่ API Key ในโค้ด', 'error');
+
+            const modal = document.getElementById('aiModal');
+            const content = document.getElementById('aiContent');
+            modal.classList.remove('hidden');
+            content.innerHTML = `<div class="flex flex-col items-center py-16 text-slate-400"><div class="animate-spin mb-3"><i data-lucide="loader-2" class="w-10 h-10 text-purple-500"></i></div><p class="font-bold text-slate-700">AI กำลังวิเคราะห์ข้อมูล...</p></div>`;
+            lucide.createIcons();
+
+            const dataToAnalyze = records.filter(r => !r.isPaid).slice(0, 100).map(r => ({
+                boat: r.boatName, date: r.recordDate, total: r.total
+            }));
+
+            const systemPrompt = "คุณคือผู้เชี่ยวชาญการวิเคราะห์ข้อมูลการขาย สรุปประเด็นยอดค้างคอมมิชชั่นของเรือท่องเที่ยว Mokiza ในภาษาไทยที่เป็นกันเอง";
+            const userPrompt = `ข้อมูลยอดค้าง (100 รายการล่าสุด): ${JSON.stringify(dataToAnalyze)} ช่วยสรุปยอดรวม เรือที่มียอดค้างสูงสุด และคำแนะนำสั้นๆ`;
+
+            const callGemini = async (retries = 5, delay = 1000) => {
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: userPrompt }] }],
+                            systemInstruction: { parts: [{ text: systemPrompt }] }
+                        })
+                    });
+                    const json = await res.json();
+                    return json.candidates?.[0]?.content?.parts?.[0]?.text;
+                } catch (e) {
+                    if (retries > 0) {
+                        await new Promise(r => setTimeout(r, delay));
+                        return callGemini(retries - 1, delay * 2);
+                    }
+                    throw e;
+                }
+            };
+
+            try {
+                const result = await callGemini();
+                content.innerText = result;
+            } catch (err) {
+                content.innerText = "ขออภัย ระบบ AI ขัดข้องชั่วคราว กรุณาลองใหม่ในภายหลัง";
+            }
+        }
+
+    </script>
+</body>
+</html>
+
+
+```
