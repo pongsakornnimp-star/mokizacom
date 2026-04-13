@@ -49,7 +49,7 @@
                 class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm outline-none focus:ring-1 focus:ring-emerald-500">
         </div>
 
-        <!-- Tab Navigation (สลับแสดง View เป็น Default) -->
+        <!-- Tab Navigation -->
         <div class="flex bg-[#EEF2F6] p-1.5 rounded-[16px] mx-4 mt-5">
             <button onclick="switchTab('record')" id="tab-record" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[12px] text-[14px] font-medium transition-all text-slate-400">
                 <i data-lucide="edit-3" class="w-4 h-4"></i> ลงบิล
@@ -65,7 +65,7 @@
             <button onclick="hideStatus()"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
 
-        <!-- TAB 1: RECORD FORM (ซ่อนไว้ก่อน) -->
+        <!-- TAB 1: RECORD FORM -->
         <main id="recordTab" class="hidden animate-in">
             <form onsubmit="handleFormSubmit(event)">
                 
@@ -162,7 +162,7 @@
             </div>
         </main>
 
-        <!-- TAB 2: VIEW LIST (แสดงเป็นหน้าแรก) -->
+        <!-- TAB 2: VIEW LIST -->
         <main id="viewTab" class="space-y-4 animate-in mx-4 pb-24">
             <div class="space-y-3">
                 <div class="flex gap-2">
@@ -179,8 +179,8 @@
                     <button onclick="analyzeWithAI()" class="flex items-center justify-center gap-2 py-3 bg-purple-600 text-white rounded-[14px] font-bold text-[13px] shadow-sm active:scale-[0.98] transition-transform">
                         <i data-lucide="sparkles" class="w-4 h-4"></i> AI วิเคราะห์
                     </button>
-                    <button id="payAllBtn" onclick="openBulkConfirm()" class="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-[14px] font-bold text-[13px] shadow-sm active:scale-[0.98] transition-transform disabled:opacity-30">
-                        <i data-lucide="check-check" class="w-4 h-4"></i> จ่ายทั้งหมด
+                    <button id="payAllBtn" onclick="openBulkConfirm()" class="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-[14px] font-bold text-[13px] shadow-sm active:scale-[0.98] transition-transform disabled:opacity-30 disabled:bg-slate-300">
+                        <i data-lucide="check-check" class="w-4 h-4"></i> จ่ายที่แสดง
                     </button>
                 </div>
 
@@ -276,9 +276,10 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'mokiza-commission';
         let scriptUrl = localStorage.getItem('mokiza_script_url') || '';
         let records = [];
+        let currentFilteredRecords = []; // สำหรับเก็บข้อมูลที่กำลังโชว์บนหน้าจอ
         let showPaidItems = false;
-        let currentTab = 'view'; // เริ่มต้นที่หน้ายอดค้าง
-        let pendingPayment = null; 
+        let currentTab = 'view';
+        let pendingPayment = { items: [] }; 
 
         // --- Initialization ---
         window.onload = () => {
@@ -287,7 +288,6 @@
             lucide.createIcons();
             updateTotal();
             
-            // เปิดหน้าขึ้นมาให้โหลดข้อมูลทันทีถ้ามี URL
             if (scriptUrl) fetchRecords();
         };
 
@@ -409,7 +409,7 @@
                 e.target.reset();
                 document.getElementById('f-recordDate').value = getLocalDatetime();
                 updateTotal();
-                records = []; // รีเซ็ตเพื่อดึงข้อมูลใหม่ตอนกดไปหน้ายอดค้าง
+                records = []; 
             } catch (err) {
                 showStatus('เกิดข้อผิดพลาดในการบันทึก', 'error');
             } finally {
@@ -466,13 +466,19 @@
             const query = normalizeName(document.getElementById('searchBox').value);
             const filter = normalizeName(document.getElementById('boatFilter').value);
             
-            const filtered = records.filter(r => {
+            // กรองข้อมูลและเก็บไว้ใน currentFilteredRecords เพื่อให้ปุ่มอ้างอิงได้
+            currentFilteredRecords = records.filter(r => {
                 if (!showPaidItems && r.isPaid) return false;
                 const rNorm = normalizeName(r.boatName);
                 return (query === '' || rNorm.includes(query)) && (filter === '' || rNorm === filter);
             });
 
-            if (filtered.length === 0) {
+            // อัปเดตสถานะปุ่มจ่ายทั้งหมด
+            const unpaidCount = currentFilteredRecords.filter(r => !r.isPaid).length;
+            const payAllBtn = document.getElementById('payAllBtn');
+            if(payAllBtn) payAllBtn.disabled = unpaidCount === 0;
+
+            if (currentFilteredRecords.length === 0) {
                 list.innerHTML = `<div class="text-center py-20 text-slate-400"><div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-slate-100"><i data-lucide="ship" class="opacity-40 w-8 h-8"></i></div><p class="text-[14px] font-medium">ไม่พบข้อมูล</p></div>`;
                 document.getElementById('grandTotalDisplay').innerText = "฿0";
                 document.getElementById('itemCountDisplay').innerText = "0 บิล";
@@ -481,7 +487,7 @@
             }
 
             let gTotal = 0;
-            list.innerHTML = filtered.map(item => {
+            list.innerHTML = currentFilteredRecords.map(item => {
                 gTotal += (parseFloat(item.total) || 0);
                 const sVal = item.sunbedValue || (item.sunbedQty * 30);
                 return `
@@ -520,7 +526,7 @@
             }).join('');
 
             document.getElementById('grandTotalDisplay').innerText = `฿${gTotal.toLocaleString()}`;
-            document.getElementById('itemCountDisplay').innerText = `${filtered.length} บิล`;
+            document.getElementById('itemCountDisplay').innerText = `${currentFilteredRecords.length} บิล`;
             lucide.createIcons();
         }
 
@@ -536,7 +542,7 @@
         // --- Logic: Payment Update ---
         function openSingleConfirm(id) {
             const item = records.find(r => r.id == id);
-            pendingPayment = { item, isAll: false };
+            pendingPayment = { items: [item] };
             document.getElementById('confirmTitle').innerText = "จ่ายเงินแล้วใช่ไหม?";
             document.getElementById('confirmDesc').innerHTML = `ยืนยันว่าเรือ <span class="font-bold text-slate-800">${item.boatName}</span> จ่ายค่าคอม <span class="text-emerald-500 font-bold">฿${Number(item.total).toLocaleString()}</span> แล้ว`;
             document.getElementById('confirmModal').classList.remove('hidden');
@@ -544,19 +550,20 @@
         }
 
         function openBulkConfirm() {
-            const unpaid = records.filter(r => !r.isPaid);
+            // ดึงเฉพาะข้อมูลที่ "ยังไม่ได้จ่าย" จากรายการที่ "แสดงอยู่บนจอ" เท่านั้น
+            const unpaid = currentFilteredRecords.filter(r => !r.isPaid);
             if (unpaid.length === 0) return;
-            pendingPayment = { isAll: true };
-            document.getElementById('confirmTitle').innerText = "จ่ายทั้งหมด?";
-            document.getElementById('confirmDesc').innerText = `ยืนยันการจ่ายเงินทั้งหมด ${unpaid.length} รายการ ที่กำลังค้างอยู่ใช่ไหม?`;
+            
+            pendingPayment = { items: unpaid };
+            document.getElementById('confirmTitle').innerText = "จ่ายทั้งหมดที่แสดง?";
+            document.getElementById('confirmDesc').innerText = `ยืนยันการจ่ายเงินทั้งหมด ${unpaid.length} รายการ ที่กำลังแสดงผลอยู่บนหน้าจอใช่ไหม?`;
             document.getElementById('confirmModal').classList.remove('hidden');
             lucide.createIcons();
         }
 
         async function processPayment() {
             closeModal('confirmModal');
-            const isAll = pendingPayment.isAll;
-            const items = isAll ? records.filter(r => !r.isPaid) : [pendingPayment.item];
+            const items = pendingPayment.items;
             
             const overlay = document.getElementById('progressOverlay');
             const progressText = document.getElementById('progressText');
@@ -578,7 +585,7 @@
                     progressBar.style.width = `${(count / total) * 100}%`;
                 }
                 showStatus('อัปเดตสถานะสำเร็จ');
-                records = []; // เคลียร์ของเก่าทิ้งเพื่อโหลดใหม่
+                records = []; 
                 fetchRecords();
             } catch (err) {
                 showStatus('การอัปเดตขัดข้องบางรายการ', 'error');
