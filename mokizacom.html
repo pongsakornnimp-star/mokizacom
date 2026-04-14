@@ -67,6 +67,15 @@
 
         <!-- TAB 1: RECORD FORM -->
         <main id="recordTab" class="hidden animate-in">
+            <!-- Edit Banner -->
+            <div id="editBanner" class="hidden mx-4 mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-2 text-blue-600">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                    <span class="text-[13px] font-bold">กำลังแก้ไขข้อมูล</span>
+                </div>
+                <button type="button" onclick="cancelEdit()" class="text-[11px] font-bold text-slate-500 hover:text-slate-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm active:scale-95 transition-all">ยกเลิก</button>
+            </div>
+            
             <form onsubmit="handleFormSubmit(event)">
                 
                 <!-- Card 1: ข้อมูลบิล -->
@@ -79,7 +88,7 @@
                         <label class="text-[12px] font-bold text-slate-400 mb-1.5 block">ชื่อเรือ</label>
                         <div class="relative">
                             <i data-lucide="ship" class="absolute left-3.5 top-3.5 text-slate-300 w-5 h-5"></i>
-                            <input type="text" id="f-boatName" list="boat-suggestions" class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-[14px] text-[14px] outline-none focus:border-emerald-500 transition-colors placeholder-slate-300 text-slate-700" placeholder="ระบุชื่อเรือ...">
+                            <input type="text" id="f-boatName" list="boat-suggestions" oninput="validateForm()" required class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-[14px] text-[14px] outline-none focus:border-emerald-500 transition-colors placeholder-slate-300 text-slate-700" placeholder="ระบุชื่อเรือ...">
                             <datalist id="boat-suggestions"></datalist>
                         </div>
                     </div>
@@ -144,7 +153,7 @@
 
                 <!-- Submit Button -->
                 <div class="px-4">
-                    <button type="submit" id="submitBtn" class="w-full py-4 bg-[#10B981] hover:bg-[#0EA5E9] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50">
+                    <button type="submit" id="submitBtn" disabled class="w-full py-4 bg-[#10B981] hover:bg-[#0EA5E9] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#10B981]">
                         <i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูล
                     </button>
                 </div>
@@ -224,6 +233,20 @@
     </div>
 
     <!-- Modals -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+        <div class="bg-white rounded-[24px] p-8 w-full max-w-sm shadow-2xl animate-in">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-red-50 rounded-[16px] mb-4 text-red-500"><i data-lucide="trash-2" class="w-10 h-10"></i></div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">ลบข้อมูลนี้?</h3>
+                <p id="deleteDesc" class="text-slate-500 mb-6 text-[14px] font-medium leading-relaxed"></p>
+                <div class="flex flex-col gap-2 w-full">
+                    <button onclick="processDelete()" class="w-full py-3.5 bg-red-500 text-white font-bold rounded-[14px] shadow-sm active:scale-[0.98] transition-transform">ใช่ ลบข้อมูลเลย</button>
+                    <button onclick="closeModal('deleteModal')" class="w-full py-3 text-slate-400 font-semibold rounded-[14px] hover:bg-slate-50 transition-colors">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
         <div class="bg-white rounded-[24px] p-8 w-full max-w-sm shadow-2xl animate-in">
             <div class="flex flex-col items-center text-center">
@@ -276,10 +299,12 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'mokiza-commission';
         let scriptUrl = localStorage.getItem('mokiza_script_url') || '';
         let records = [];
-        let currentFilteredRecords = []; // สำหรับเก็บข้อมูลที่กำลังโชว์บนหน้าจอ
+        let currentFilteredRecords = []; 
         let showPaidItems = false;
         let currentTab = 'view';
         let pendingPayment = { items: [] }; 
+        let currentEditId = null;
+        let pendingDeleteId = null;
 
         // --- Initialization ---
         window.onload = () => {
@@ -287,8 +312,16 @@
             document.getElementById('f-recordDate').value = getLocalDatetime();
             lucide.createIcons();
             updateTotal();
+            validateForm(); // เช็คสถานะปุ่มตอนโหลดหน้าแรก
             
             if (scriptUrl) fetchRecords();
+            
+            // ปิดเมนูเมื่อคลิกที่อื่น
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.record-menu-btn') && !e.target.closest('.record-menu-dropdown')) {
+                    closeAllMenus();
+                }
+            });
         };
 
         // --- Helpers ---
@@ -298,8 +331,11 @@
             return now.toISOString().slice(0, 16);
         }
 
+        // 🛠 FIX: ปรับปรุงให้รองรับตัวเลขล้วน (เช่น 15, 99) และป้องกันค่าว่างจากการทำให้แอพแครช
         function normalizeName(name) {
-            return (name || "").trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, '');
+            if (name == null) return "";
+            // แปลงเป็น String เสมอก่อนใช้คำสั่ง trim/toLowerCase
+            return String(name).trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, '');
         }
 
         function formatDisplayDate(dateStr) {
@@ -336,6 +372,11 @@
 
         function closeModal(id) {
             document.getElementById(id).classList.add('hidden');
+        }
+
+        function validateForm() {
+            const boatName = document.getElementById('f-boatName').value.trim();
+            document.getElementById('submitBtn').disabled = !boatName;
         }
 
         // --- Tab Switching ---
@@ -391,12 +432,12 @@
             lucide.createIcons();
 
             try {
+                const actionStr = currentEditId ? 'update' : 'save';
+                const idStr = currentEditId ? currentEditId : Date.now().toString();
+
                 const formData = new FormData();
-                formData.append('action', 'save');
-                formData.append('id', Date.now().toString());
-                formData.append('recordDate', document.getElementById('f-recordDate').value);
-                formData.append('boatName', boatName);
-                formData.append('food', document.getElementById('f-food').value || 0);
+                formData.append('action', actionStr);
+                formData.append('id', idStr);
                 formData.append('jetBanana', document.getElementById('f-jetBanana').value || 0);
                 formData.append('motorbike', document.getElementById('f-motorbike').value || 0);
                 formData.append('sunbedQty', document.getElementById('f-sunbedQty').value || 0);
@@ -405,16 +446,24 @@
 
                 await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: formData });
                 
-                showStatus('บันทึกบิลสำเร็จ!');
-                e.target.reset();
-                document.getElementById('f-recordDate').value = getLocalDatetime();
-                updateTotal();
+                showStatus(currentEditId ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกบิลสำเร็จ!');
+                
+                if (currentEditId) {
+                    cancelEdit(); // กลับโหมดปกติ
+                } else {
+                    e.target.reset();
+                    document.getElementById('f-recordDate').value = getLocalDatetime();
+                    updateTotal();
+                    validateForm(); // ล็อกปุ่มกลับหลังบันทึกเสร็จ
+                }
+                
                 records = []; 
+                if (actionStr === 'update') fetchRecords(); // ดึงข้อมูลใหม่ถ้าอัปเดต
             } catch (err) {
                 showStatus('เกิดข้อผิดพลาดในการบันทึก', 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูล`;
+                btn.innerHTML = currentEditId ? `<i data-lucide="save" class="w-5 h-5"></i> อัปเดตข้อมูล` : `<i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูล`;
                 lucide.createIcons();
             }
         }
@@ -435,6 +484,7 @@
                     renderRecords();
                 }
             } catch (err) {
+                console.error("Fetch error:", err);
                 showStatus('ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่', 'error');
             } finally {
                 spinner.classList.remove('animate-spin');
@@ -447,9 +497,10 @@
             const boatMap = new Map();
             
             records.forEach(r => {
-                if (!r.boatName) return;
-                const norm = normalizeName(r.boatName);
-                if (!boatMap.has(norm)) boatMap.set(norm, r.boatName.trim());
+                if (r.boatName == null || r.boatName === '') return; // ป้องกันชื่อเรือที่ว่างเปล่าจาก Sheet
+                const nameStr = String(r.boatName);
+                const norm = normalizeName(nameStr);
+                if (!boatMap.has(norm)) boatMap.set(norm, nameStr.trim());
             });
 
             const sortedNames = Array.from(boatMap.values()).sort((a,b) => a.localeCompare(b));
@@ -466,14 +517,13 @@
             const query = normalizeName(document.getElementById('searchBox').value);
             const filter = normalizeName(document.getElementById('boatFilter').value);
             
-            // กรองข้อมูลและเก็บไว้ใน currentFilteredRecords เพื่อให้ปุ่มอ้างอิงได้
             currentFilteredRecords = records.filter(r => {
                 if (!showPaidItems && r.isPaid) return false;
+                if (r.boatName == null || r.boatName === '') return false; // ข้ามข้อมูลที่ไม่มีชื่อเรือเพื่อไม่ให้แอพแครช
                 const rNorm = normalizeName(r.boatName);
                 return (query === '' || rNorm.includes(query)) && (filter === '' || rNorm === filter);
             });
 
-            // อัปเดตสถานะปุ่มจ่ายทั้งหมด
             const unpaidCount = currentFilteredRecords.filter(r => !r.isPaid).length;
             const payAllBtn = document.getElementById('payAllBtn');
             if(payAllBtn) payAllBtn.disabled = unpaidCount === 0;
@@ -490,6 +540,7 @@
             list.innerHTML = currentFilteredRecords.map(item => {
                 gTotal += (parseFloat(item.total) || 0);
                 const sVal = item.sunbedValue || (item.sunbedQty * 30);
+                const safeName = String(item.boatName);
                 return `
                 <div class="bg-white rounded-[20px] p-4 shadow-sm border border-slate-100 flex flex-col gap-3">
                     <div class="flex justify-between items-start">
@@ -498,13 +549,28 @@
                                 <i data-lucide="ship" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-800 text-[15px] leading-none mb-1">${item.boatName}</h4>
+                                <h4 class="font-bold text-slate-800 text-[15px] leading-none mb-1">${safeName}</h4>
                                 <span class="text-[11px] text-slate-400 font-medium">${formatDisplayDate(item.recordDate)}</span>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-tight">Net Total</span>
-                            <span class="text-lg font-bold ${item.isPaid ? 'text-emerald-500' : 'text-slate-800'}">฿${Number(item.total).toLocaleString()}</span>
+                        <div class="flex items-start gap-3">
+                            <div class="text-right mt-1">
+                                <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-tight">Net Total</span>
+                                <span class="text-lg font-bold ${item.isPaid ? 'text-emerald-500' : 'text-slate-800'} leading-none">฿${Number(item.total).toLocaleString()}</span>
+                            </div>
+                            <div class="relative">
+                                <button onclick="toggleRecordMenu('${item.id}')" class="record-menu-btn text-slate-300 hover:text-slate-600 p-1 -mr-1 rounded-md transition-colors">
+                                    <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                                </button>
+                                <div id="menu-${item.id}" class="record-menu-dropdown hidden absolute right-0 top-full mt-1 bg-white border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.08)] rounded-[12px] overflow-hidden z-20 w-32 py-1">
+                                    <button onclick="editRecord('${item.id}')" class="w-full text-left px-4 py-2.5 text-[12px] font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors">
+                                        <i data-lucide="pencil" class="w-3.5 h-3.5 text-blue-500"></i> แก้ไข
+                                    </button>
+                                    <button onclick="confirmDelete('${item.id}')" class="w-full text-left px-4 py-2.5 text-[12px] font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-slate-50 transition-colors">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ลบข้อมูล
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center justify-between py-2 border-y border-slate-50 px-1 overflow-x-hidden">
@@ -539,18 +605,111 @@
             lucide.createIcons();
         }
 
+        // --- Logic: Edit & Delete ---
+        function toggleRecordMenu(id) {
+            const menu = document.getElementById(`menu-${id}`);
+            const isHidden = menu.classList.contains('hidden');
+            closeAllMenus();
+            if (isHidden) menu.classList.remove('hidden');
+        }
+
+        function closeAllMenus() {
+            document.querySelectorAll('.record-menu-dropdown').forEach(el => el.classList.add('hidden'));
+        }
+
+        function editRecord(id) {
+            closeAllMenus();
+            const item = records.find(r => r.id == id);
+            if (!item) return;
+
+            currentEditId = id;
+            
+            // ดึงค่ามาใส่ในฟอร์ม
+            document.getElementById('f-recordDate').value = item.recordDate || getLocalDatetime();
+            document.getElementById('f-boatName').value = item.boatName;
+            document.getElementById('f-food').value = item.food || '';
+            document.getElementById('f-jetBanana').value = item.jetBanana || '';
+            document.getElementById('f-motorbike').value = item.motorbike || '';
+            document.getElementById('f-sunbedQty').value = item.sunbedQty || '';
+            document.getElementById('f-other').value = item.other || '';
+            document.getElementById('f-isPaid').checked = item.isPaid || false;
+
+            // เปลี่ยน UI ฟอร์ม
+            document.getElementById('editBanner').classList.remove('hidden');
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i> อัปเดตข้อมูล`;
+            btn.className = "w-full py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+            
+            updateTotal();
+            validateForm();
+            lucide.createIcons();
+            switchTab('record');
+        }
+
+        function cancelEdit() {
+            currentEditId = null;
+            document.getElementById('editBanner').classList.add('hidden');
+            document.querySelector('form').reset();
+            document.getElementById('f-recordDate').value = getLocalDatetime();
+            
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูล`;
+            btn.className = "w-full py-4 bg-[#10B981] hover:bg-[#0EA5E9] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+            
+            updateTotal();
+            validateForm();
+            lucide.createIcons();
+        }
+
+        function confirmDelete(id) {
+            closeAllMenus();
+            const item = records.find(r => r.id == id);
+            pendingDeleteId = id;
+            const safeName = String(item.boatName);
+            document.getElementById('deleteDesc').innerHTML = `ต้องการลบข้อมูลเรือ <span class="font-bold text-slate-800">${safeName}</span> ยอดเงิน <span class="font-bold text-red-500">฿${Number(item.total).toLocaleString()}</span> ใช่หรือไม่?<br><br><span class="text-[12px] text-red-400">เมื่อลบแล้วจะไม่สามารถกู้คืนได้</span>`;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function processDelete() {
+            closeModal('deleteModal');
+            if (!pendingDeleteId) return;
+            
+            const overlay = document.getElementById('progressOverlay');
+            document.querySelector('#progressOverlay .tracking-widest').innerText = 'DELETING RECORD';
+            document.getElementById('progressText').innerText = `กำลังลบ...`;
+            document.getElementById('progressBar').style.width = `100%`;
+            overlay.classList.remove('hidden');
+
+            try {
+                const fd = new FormData();
+                fd.append('action', 'delete');
+                fd.append('id', pendingDeleteId);
+                await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: fd });
+                
+                showStatus('ลบข้อมูลเรียบร้อยแล้ว');
+                records = []; 
+                fetchRecords();
+            } catch (err) {
+                showStatus('การลบข้อมูลล้มเหลว', 'error');
+            } finally {
+                overlay.classList.add('hidden');
+                pendingDeleteId = null;
+            }
+        }
+
         // --- Logic: Payment Update ---
         function openSingleConfirm(id) {
             const item = records.find(r => r.id == id);
             pendingPayment = { items: [item] };
+            const safeName = String(item.boatName);
             document.getElementById('confirmTitle').innerText = "จ่ายเงินแล้วใช่ไหม?";
-            document.getElementById('confirmDesc').innerHTML = `ยืนยันว่าเรือ <span class="font-bold text-slate-800">${item.boatName}</span> จ่ายค่าคอม <span class="text-emerald-500 font-bold">฿${Number(item.total).toLocaleString()}</span> แล้ว`;
+            document.getElementById('confirmDesc').innerHTML = `ยืนยันว่าเรือ <span class="font-bold text-slate-800">${safeName}</span> จ่ายค่าคอม <span class="text-emerald-500 font-bold">฿${Number(item.total).toLocaleString()}</span> แล้ว`;
             document.getElementById('confirmModal').classList.remove('hidden');
             lucide.createIcons();
         }
 
         function openBulkConfirm() {
-            // ดึงเฉพาะข้อมูลที่ "ยังไม่ได้จ่าย" จากรายการที่ "แสดงอยู่บนจอ" เท่านั้น
             const unpaid = currentFilteredRecords.filter(r => !r.isPaid);
             if (unpaid.length === 0) return;
             
@@ -566,7 +725,7 @@
             const items = pendingPayment.items;
             
             const overlay = document.getElementById('progressOverlay');
-            const progressText = document.getElementById('progressText');
+            document.querySelector('#progressOverlay .tracking-widest').innerText = 'UPDATING DATABASE';
             const progressBar = document.getElementById('progressBar');
             
             overlay.classList.remove('hidden');
@@ -598,7 +757,6 @@
         // --- Logic: AI Analysis ---
         async function analyzeWithAI() {
             if (records.length === 0) return showStatus('กรุณาโหลดข้อมูลก่อนครับ', 'error');
-            if (!apiKey) return showStatus('ไม่ได้ใส่ API Key ในโค้ด', 'error');
 
             const modal = document.getElementById('aiModal');
             const content = document.getElementById('aiContent');
@@ -607,7 +765,7 @@
             lucide.createIcons();
 
             const dataToAnalyze = records.filter(r => !r.isPaid).slice(0, 100).map(r => ({
-                boat: r.boatName, date: r.recordDate, total: r.total
+                boat: String(r.boatName), date: r.recordDate, total: r.total
             }));
 
             const systemPrompt = "คุณคือผู้เชี่ยวชาญการวิเคราะห์ข้อมูลการขาย สรุปประเด็นยอดค้างคอมมิชชั่นของเรือท่องเที่ยว Mokiza ในภาษาไทยที่เป็นกันเอง";
@@ -645,6 +803,9 @@
     </script>
 </body>
 </html>
+
+
+
 
 
 ```
