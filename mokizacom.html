@@ -67,7 +67,8 @@
 
         <!-- TAB 1: RECORD FORM -->
         <main id="recordTab" class="hidden animate-in">
-            <!-- Edit Banner -->
+            
+            <!-- Edit Banner (แสดงเฉพาะตอนกดแก้ไขบิล) -->
             <div id="editBanner" class="hidden mx-4 mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-2 text-blue-600">
                     <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -75,7 +76,7 @@
                 </div>
                 <button type="button" onclick="cancelEdit()" class="text-[11px] font-bold text-slate-500 hover:text-slate-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm active:scale-95 transition-all">ยกเลิก</button>
             </div>
-            
+
             <form onsubmit="handleFormSubmit(event)">
                 
                 <!-- Card 1: ข้อมูลบิล -->
@@ -233,6 +234,7 @@
     </div>
 
     <!-- Modals -->
+    <!-- ลบข้อมูล -->
     <div id="deleteModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
         <div class="bg-white rounded-[24px] p-8 w-full max-w-sm shadow-2xl animate-in">
             <div class="flex flex-col items-center text-center">
@@ -247,6 +249,7 @@
         </div>
     </div>
 
+    <!-- จ่ายเงิน -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
         <div class="bg-white rounded-[24px] p-8 w-full max-w-sm shadow-2xl animate-in">
             <div class="flex flex-col items-center text-center">
@@ -261,6 +264,7 @@
         </div>
     </div>
 
+    <!-- AI Modal -->
     <div id="aiModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
         <div class="bg-white w-full max-w-xl rounded-t-[24px] md:rounded-[24px] overflow-hidden flex flex-col max-h-[90vh] animate-in shadow-2xl">
             <div class="bg-purple-600 p-5 text-white flex justify-between items-center">
@@ -284,7 +288,7 @@
         <div class="bg-white p-6 rounded-[24px] shadow-2xl w-full max-w-xs text-center space-y-4">
             <div class="animate-spin inline-block"><i data-lucide="loader-2" class="text-blue-500 w-8 h-8"></i></div>
             <div class="space-y-1">
-                <p class="font-bold text-slate-800 uppercase text-[11px] tracking-widest">Updating Database</p>
+                <p class="font-bold text-slate-800 uppercase text-[11px] tracking-widest">UPDATING DATABASE</p>
                 <p id="progressText" class="text-2xl font-bold text-blue-600">0 / 0</p>
             </div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -315,8 +319,8 @@
             validateForm(); // เช็คสถานะปุ่มตอนโหลดหน้าแรก
             
             if (scriptUrl) fetchRecords();
-            
-            // ปิดเมนูเมื่อคลิกที่อื่น
+
+            // ปิดเมนู 3 จุด เมื่อคลิกที่อื่น
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.record-menu-btn') && !e.target.closest('.record-menu-dropdown')) {
                     closeAllMenus();
@@ -331,10 +335,8 @@
             return now.toISOString().slice(0, 16);
         }
 
-        // 🛠 FIX: ปรับปรุงให้รองรับตัวเลขล้วน (เช่น 15, 99) และป้องกันค่าว่างจากการทำให้แอพแครช
         function normalizeName(name) {
             if (name == null) return "";
-            // แปลงเป็น String เสมอก่อนใช้คำสั่ง trim/toLowerCase
             return String(name).trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, '');
         }
 
@@ -419,7 +421,7 @@
             document.getElementById('totalDisplay').innerText = `฿ ${total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
         }
 
-        // --- Logic: Submission ---
+        // --- Logic: Submission (Save & Update) ---
         async function handleFormSubmit(e) {
             e.preventDefault();
             const boatName = document.getElementById('f-boatName').value.trim();
@@ -438,6 +440,9 @@
                 const formData = new FormData();
                 formData.append('action', actionStr);
                 formData.append('id', idStr);
+                formData.append('recordDate', document.getElementById('f-recordDate').value);
+                formData.append('boatName', String(boatName)); 
+                formData.append('food', document.getElementById('f-food').value || 0);
                 formData.append('jetBanana', document.getElementById('f-jetBanana').value || 0);
                 formData.append('motorbike', document.getElementById('f-motorbike').value || 0);
                 formData.append('sunbedQty', document.getElementById('f-sunbedQty').value || 0);
@@ -449,16 +454,16 @@
                 showStatus(currentEditId ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกบิลสำเร็จ!');
                 
                 if (currentEditId) {
-                    cancelEdit(); // กลับโหมดปกติ
+                    cancelEdit(); // ปิดโหมด Edit
                 } else {
                     e.target.reset();
                     document.getElementById('f-recordDate').value = getLocalDatetime();
                     updateTotal();
-                    validateForm(); // ล็อกปุ่มกลับหลังบันทึกเสร็จ
+                    validateForm(); 
                 }
-                
+
                 records = []; 
-                if (actionStr === 'update') fetchRecords(); // ดึงข้อมูลใหม่ถ้าอัปเดต
+                if (actionStr === 'update') fetchRecords(); 
             } catch (err) {
                 showStatus('เกิดข้อผิดพลาดในการบันทึก', 'error');
             } finally {
@@ -497,7 +502,7 @@
             const boatMap = new Map();
             
             records.forEach(r => {
-                if (r.boatName == null || r.boatName === '') return; // ป้องกันชื่อเรือที่ว่างเปล่าจาก Sheet
+                if (r.boatName == null || r.boatName === '') return;
                 const nameStr = String(r.boatName);
                 const norm = normalizeName(nameStr);
                 if (!boatMap.has(norm)) boatMap.set(norm, nameStr.trim());
@@ -519,7 +524,7 @@
             
             currentFilteredRecords = records.filter(r => {
                 if (!showPaidItems && r.isPaid) return false;
-                if (r.boatName == null || r.boatName === '') return false; // ข้ามข้อมูลที่ไม่มีชื่อเรือเพื่อไม่ให้แอพแครช
+                if (r.boatName == null || r.boatName === '') return false;
                 const rNorm = normalizeName(r.boatName);
                 return (query === '' || rNorm.includes(query)) && (filter === '' || rNorm === filter);
             });
@@ -558,6 +563,7 @@
                                 <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-tight">Net Total</span>
                                 <span class="text-lg font-bold ${item.isPaid ? 'text-emerald-500' : 'text-slate-800'} leading-none">฿${Number(item.total).toLocaleString()}</span>
                             </div>
+                            <!-- ปุ่ม 3 จุดสำหรับแก้ไข/ลบ -->
                             <div class="relative">
                                 <button onclick="toggleRecordMenu('${item.id}')" class="record-menu-btn text-slate-300 hover:text-slate-600 p-1 -mr-1 rounded-md transition-colors">
                                     <i data-lucide="more-vertical" class="w-5 h-5"></i>
@@ -624,7 +630,6 @@
 
             currentEditId = id;
             
-            // ดึงค่ามาใส่ในฟอร์ม
             document.getElementById('f-recordDate').value = item.recordDate || getLocalDatetime();
             document.getElementById('f-boatName').value = item.boatName;
             document.getElementById('f-food').value = item.food || '';
@@ -634,7 +639,6 @@
             document.getElementById('f-other').value = item.other || '';
             document.getElementById('f-isPaid').checked = item.isPaid || false;
 
-            // เปลี่ยน UI ฟอร์ม
             document.getElementById('editBanner').classList.remove('hidden');
             const btn = document.getElementById('submitBtn');
             btn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i> อัปเดตข้อมูล`;
@@ -695,6 +699,7 @@
             } finally {
                 overlay.classList.add('hidden');
                 pendingDeleteId = null;
+                document.querySelector('#progressOverlay .tracking-widest').innerText = 'UPDATING DATABASE';
             }
         }
 
@@ -726,6 +731,7 @@
             
             const overlay = document.getElementById('progressOverlay');
             document.querySelector('#progressOverlay .tracking-widest').innerText = 'UPDATING DATABASE';
+            const progressText = document.getElementById('progressText');
             const progressBar = document.getElementById('progressBar');
             
             overlay.classList.remove('hidden');
@@ -803,9 +809,6 @@
     </script>
 </body>
 </html>
-
-
-
 
 
 ```
