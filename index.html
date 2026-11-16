@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#FAF7F2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="description" content="ระบบบันทึกค่าคอมมิชชั่นเรือและแดชบอร์ด Mokiza Speed Boat Com. เชื่อมต่อ Google Sheet">
+    <title>Mokiza Speed Boat Com. | ระบบบันทึกค่าคอมมิชชั่นเรือและแดชบอร์ด</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232C1E16'/%3E%3Cpath d='M12 38 L52 34 L44 44 C34 46 20 45 12 38 Z' fill='%23FAF7F2'/%3E%3Cpath d='M22 36 L28 24 L42 26 L46 34 Z' fill='%23E8B87D'/%3E%3Cpath d='M10 49 Q22 44 32 49 T54 48' fill='none' stroke='%23E8B87D' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'xs': '360px',
+                        'fold': '740px',      /* Galaxy Z Fold 8 Unfolded / Tablet */
+                        'desktop': '1024px',  /* PC / Laptop Desktop */
+                    },
+                    colors: {
+                        brown: {
+                            50:  '#FAF7F2',
+                            100: '#F3EDE4',
+                            200: '#E6DDD2',
+                            300: '#D5C5B3',
+                            400: '#B59B82',
+                            500: '#8C6239',
+                            600: '#6F4E37',
+                            700: '#563B28',
+                            800: '#432D20',
+                            900: '#2C1E16',
+                            950: '#1C120C',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'Prompt', 'sans-serif'],
+                        mono: ['Geist Mono', 'ui-monospace', 'monospace'],
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- Google Fonts: Manrope + Prompt (Thai) + Geist Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@500;600&family=Manrope:wght@400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Phosphor Icons (B6 Approved Icon Set) -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <style>
+        :root {
+            --bg-canvas: #FAF7F2;
+            --bg-surface: #FFFFFF;
+            --bg-subtle: #F3EDE4;
+            --ink-primary: #1C120C;
+            --ink-secondary: #432D20;
+            --ink-muted: #6F4E37;
+            --border-warm: #E6DDD2;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --ease-base: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Manrope', 'Prompt', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--ink-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            text-wrap: pretty;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            text-wrap: balance;
+        }
+
+        /* Named Text Styles (B1) */
+        .heading-5 { font-size: 1.5rem; line-height: 2rem; font-weight: 600; letter-spacing: -0.02em; }
+        .heading-6 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; letter-spacing: -0.015em; }
+        .title-4   { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+        .title-5   { font-size: 0.75rem; line-height: 1rem; font-weight: 500; }
+        .body-4    { font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; }
+        .body-5    { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+        .body-6    { font-size: 0.875rem; line-height: 1.25rem; font-weight: 400; }
+        .button-md { font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+        .button-sm { font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; }
+        .button-xsm{ font-size: 0.75rem; line-height: 1rem; font-weight: 600; }
+        .caption-3 { font-size: 0.75rem; line-height: 1rem; font-weight: 600; }
+        .caption-4 { font-size: 0.75rem; line-height: 1rem; font-weight: 500; }
+        .caption-5 { font-size: 0.75rem; line-height: 1rem; font-weight: 400; }
+
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+        }
+
+        input.no-spinner::-webkit-outer-spin-button,
+        input.no-spinner::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input.no-spinner {
+            -moz-appearance: textfield;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Weighted Deceleration Curve (B7) */
+        @keyframes enterRise {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: enterRise 0.4s var(--ease-base) both;
+        }
+
+        @keyframes shimmerPulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.9; }
+        }
+        .skeleton-block {
+            background-color: #EDE5DA;
+            animation: shimmerPulse 1.4s var(--ease-base) infinite;
+        }
+
+        button, a, select, input {
+            transition-property: color, background-color, border-color, opacity, transform;
+            transition-duration: 300ms;
+            transition-timing-function: var(--ease-base);
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+                transform: none !important;
+            }
+        }
+
+        button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid #6F4E37;
+            outline-offset: 2px;
+        }
+
+        /* Clean Focused Layout on Fold 8 & PC Desktop */
+        @media (min-width: 740px) {
+            .workspace-single-container {
+                max-width: 48rem;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .workspace-batch-container {
+                max-width: 72rem;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        .safe-pb {
+            padding-bottom: calc(8px + var(--safe-bottom));
+        }
+
+        /* Interactive chart bar transition */
+        .chart-bar-fill {
+            transition: height 0.5s var(--ease-base), background-color 0.25s var(--ease-base);
+        }
+        .ring-progress-circle {
+            transition: stroke-dashoffset 0.7s var(--ease-base);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-24 fold:pb-12 text-brown-950 selection:bg-brown-900 selection:text-white">
+
+    <!-- ================= PINNED FLOATING TOP NAVIGATION ================= -->
+    <div class="fixed top-0 inset-x-0 z-40 pt-2 fold:pt-3 px-3 fold:px-6 desktop:px-8 pointer-events-none">
+        <header class="pointer-events-auto max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-brown-200 rounded-2xl px-3 fold:px-4 h-14 flex items-center justify-between gap-2 shadow-sm">
+            <!-- Brand Identity + Custom Speedboat Logo -->
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-brown-900 flex items-center justify-center shrink-0 shadow-2xs" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" class="w-6 h-6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 38 L54 33 L45 43.5 C34 46 19 45 10 38 Z" fill="#FAF7F2"/>
+                        <path d="M21 36.5 L27.5 23 L43 25 L47.5 33.5 Z" fill="#E8B87D"/>
+                        <path d="M31 23.5 L35 16" stroke="#FAF7F2" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M9 49.5 Q21 44 32 49.5 T55 48.5" stroke="#E8B87D" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="flex items-center gap-2 min-w-0">
+                    <h1 class="text-sm xs:text-base font-semibold tracking-tight text-brown-950 truncate">Mokiza Speed Boat Com.</h1>
+                    <span id="syncDot" class="w-2 h-2 rounded-full bg-brown-300 shrink-0" title="สถานะการเชื่อมต่อ Google Sheet"></span>
+                </div>
+            </div>
+
+            <!-- Top Navigation Bar (Fold 8 Unfolded & PC Desktop >= 740px) -->
+            <nav aria-label="เมนูหลัก" class="hidden fold:flex items-center bg-brown-100 p-1 rounded-xl border border-brown-200 shrink-0 gap-1">
+                <button type="button" onclick="navigateTo('dashboard')" id="topNav-dashboard"
+                    class="px-3 py-2 rounded-lg button-xsm cursor-pointer flex items-center gap-2 whitespace-nowrap bg-brown-900 text-white">
+                    <i class="ph ph-squares-four text-sm shrink-0"></i>
+                    <span>แดชบอร์ด</span>
+                </button>
+                <button type="button" onclick="navigateTo('ledger')" id="topNav-ledger"
+                    class="px-3 py-2 rounded-lg caption-4 cursor-pointer flex items-center gap-2 whitespace-nowrap text-brown-700 hover:text-brown-950 hover:bg-white/60">
+                    <i class="ph ph-receipt text-sm shrink-0"></i>
+                    <span>จัดการบิล</span>
+                    <span id="topBadgeUnpaid" class="px-2 py-0.5 caption-3 rounded-full bg-brown-200 text-brown-900 tabular-nums">0</span>
+                </button>
+                <button type="button" onclick="navigateTo('record')" id="topNav-record"
+                    class="px-3 py-2 rounded-lg caption-4 cursor-pointer flex items-center gap-2 whitespace-nowrap text-brown-700 hover:text-brown-950 hover:bg-white/60">
+                    <i class="ph ph-plus-circle text-sm shrink-0"></i>
+                    <span id="topNavRecordLabel">ลงบิลคอมเรือ</span>
+                </button>
+            </nav>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="openSummaryModal()"
+                    class="inline-flex items-center gap-2 px-2.5 fold:px-3 py-2 rounded-xl button-xsm bg-brown-100 hover:bg-brown-200 text-brown-900 cursor-pointer whitespace-nowrap"
+                    title="สรุปรายงานส่ง LINE" aria-label="สรุปรายงานส่ง LINE">
+                    <i class="ph ph-file-text text-sm"></i>
+                    <span class="hidden fold:inline">สรุปรายงาน</span>
+                </button>
+
+                <button type="button" onclick="toggleFullscreen()" id="fullscreenBtn"
+                    class="inline-flex items-center justify-center w-9 h-9 rounded-xl text-brown-700 hover:text-brown-950 hover:bg-brown-100 cursor-pointer"
+                    title="เปิดเต็มจอ" aria-label="เปิดเต็มจอ">
+                    <i id="fullscreenIcon" class="ph ph-arrows-out text-base"></i>
+                </button>
+
+                <button type="button" onclick="fetchRecords(true)"
+                    class="inline-flex items-center justify-center w-9 h-9 rounded-xl text-brown-700 hover:text-brown-950 hover:bg-brown-100 cursor-pointer"
+                    title="ซิงค์ข้อมูลล่าสุด" aria-label="ซิงค์ข้อมูลล่าสุด">
+                    <span id="refreshSpinner" class="inline-flex items-center justify-center">
+                        <i class="ph ph-arrows-clockwise text-base"></i>
+                    </span>
+                </button>
+
+                <button type="button" onclick="toggleSettings()" id="settingsBtn"
+                    class="inline-flex items-center justify-center w-9 h-9 rounded-xl text-brown-700 hover:text-brown-950 hover:bg-brown-100 cursor-pointer"
+                    title="ตั้งค่าลิงก์ Google Apps Script" aria-label="ตั้งค่าลิงก์ Google Apps Script">
+                    <i class="ph ph-sliders-horizontal text-base"></i>
+                </button>
+            </div>
+        </header>
+    </div>
+
+    <!-- ================= GOOGLE APPS SCRIPT URL SETUP PANEL ================= -->
+    <section id="settingsPanel" class="hidden max-w-7xl mx-auto px-3 fold:px-6 desktop:px-8 pt-20 fold:pt-20 animate-in">
+        <div class="bg-white p-4 rounded-2xl border border-brown-300 space-y-3">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-brown-100 text-brown-800 flex items-center justify-center shrink-0">
+                        <i class="ph ph-link text-base"></i>
+                    </div>
+                    <div>
+                        <h2 class="title-4 font-semibold text-brown-950">เชื่อมต่อลิงก์ Google Apps Script</h2>
+                        <p class="caption-5 text-brown-600 mt-0.5">วางลิงก์ Web App สำหรับชีทของร้านครั้งแรก ระบบจะบันทึกไว้ในเบราว์เซอร์ให้อัตโนมัติ</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleSettings()" id="closeSettingsBtn" class="text-brown-400 hover:text-brown-800 p-1 cursor-pointer" aria-label="ปิดตั้งค่า">
+                    <i class="ph ph-x text-base"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveUrlForm(event)" class="flex flex-col xs:flex-row gap-2">
+                <div class="flex-1">
+                    <label for="scriptUrlInput" class="sr-only">Google Apps Script Web App URL</label>
+                    <input type="url" id="scriptUrlInput" required
+                        placeholder="https://script.google.com/macros/s/.../exec"
+                        class="w-full px-3 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-xl body-6 text-brown-950 outline-none">
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="submit"
+                        class="flex-1 xs:flex-initial px-3 py-2 bg-brown-900 hover:bg-brown-800 text-white rounded-xl button-xsm inline-flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="ph ph-floppy-disk text-sm"></i>
+                        <span>บันทึกและเชื่อมต่อ</span>
+                    </button>
+                    <button type="button" onclick="clearSavedUrl()"
+                        class="px-3 py-2 bg-brown-100 hover:bg-brown-200 text-brown-800 rounded-xl button-xsm cursor-pointer">
+                        ล้างลิงก์
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- ================= TOAST NOTIFICATION ================= -->
+    <div id="statusMessage" role="status" aria-live="polite"
+        class="hidden fixed bottom-20 fold:bottom-6 right-4 z-50 w-[calc(100%-2rem)] max-w-xs px-4 py-3 rounded-xl shadow-lg flex items-center justify-between gap-2 caption-4 animate-in">
+        <span id="statusText" class="truncate"></span>
+        <button type="button" onclick="hideStatus()" class="opacity-70 hover:opacity-100 p-1 cursor-pointer" aria-label="ปิด">
+            <i class="ph ph-x text-sm"></i>
+        </button>
+    </div>
+
+    <!-- ================= MAIN CONTENT CONTAINER ================= -->
+    <main class="max-w-7xl mx-auto px-3 fold:px-6 desktop:px-8 pt-20 fold:pt-24">
+
+        <!-- ========================================================================= -->
+        <!-- SECTION 1: DASHBOARD (แดชบอร์ดภาพรวมค่าคอมมิชชั่นเรือ)                        -->
+        <!-- ========================================================================= -->
+        <section id="sec-dashboard" class="space-y-4 animate-in" aria-label="แดชบอร์ดภาพรวมคอมเรือ">
+
+            <!-- Period Filter Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-brown-200">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-brown-800"></span>
+                    <h2 class="title-4 font-semibold text-brown-950">ภาพรวมค่าคอมมิชชั่นเรือ</h2>
+                </div>
+                <div class="inline-flex bg-brown-100 p-1 rounded-xl border border-brown-200 gap-1">
+                    <button type="button" onclick="setDashRange('all')" id="dashRange-all"
+                        class="px-3 py-1 rounded-lg caption-3 cursor-pointer bg-white text-brown-950 shadow-2xs">ทั้งหมด</button>
+                    <button type="button" onclick="setDashRange('today')" id="dashRange-today"
+                        class="px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950">วันนี้</button>
+                    <button type="button" onclick="setDashRange('7days')" id="dashRange-7days"
+                        class="px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950">7 วัน</button>
+                    <button type="button" onclick="setDashRange('month')" id="dashRange-month"
+                        class="px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950">เดือนนี้</button>
+                </div>
+            </div>
+
+            <!-- 4 Executive KPI Cards -->
+            <div class="grid grid-cols-2 fold:grid-cols-4 gap-3 desktop:gap-4">
+                <!-- KPI 1: ยอดค้างจ่ายสุทธิ -->
+                <button type="button" onclick="jumpToLedgerFilter('unpaid')"
+                    class="text-left bg-brown-900 text-white p-4 desktop:p-6 rounded-2xl hover:bg-brown-800 cursor-pointer">
+                    <div class="flex items-center justify-between caption-4 text-brown-200 mb-2">
+                        <span>ค้างจ่ายสุทธิ</span>
+                        <i class="ph ph-clock text-base text-amber-300"></i>
+                    </div>
+                    <p id="dashUnpaidTotal" class="text-xl xs:text-2xl desktop:text-3xl font-semibold tabular-nums tracking-tight truncate">฿0</p>
+                    <span id="dashUnpaidSub" class="caption-5 text-brown-300 block mt-1 tabular-nums">0 บิล · 0 ลำเรือ</span>
+                </button>
+
+                <!-- KPI 2: จ่ายแล้ว -->
+                <button type="button" onclick="jumpToLedgerFilter('paid')"
+                    class="text-left bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 hover:border-brown-400 cursor-pointer">
+                    <div class="flex items-center justify-between caption-4 text-brown-600 mb-2">
+                        <span>เคลียร์จ่ายแล้ว</span>
+                        <i class="ph ph-check-circle text-base text-emerald-700"></i>
+                    </div>
+                    <p id="dashPaidTotal" class="text-xl xs:text-2xl desktop:text-3xl font-semibold text-emerald-700 tabular-nums tracking-tight truncate">฿0</p>
+                    <span id="dashPaidSub" class="caption-5 text-brown-500 block mt-1 tabular-nums">0 บิลที่จ่ายแล้ว</span>
+                </button>
+
+                <!-- KPI 3: ยอดคอมรวมทั้งหมด -->
+                <button type="button" onclick="jumpToLedgerFilter('all')"
+                    class="text-left bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 hover:border-brown-400 cursor-pointer">
+                    <div class="flex items-center justify-between caption-4 text-brown-600 mb-2">
+                        <span>ยอดคอมรวม</span>
+                        <i class="ph ph-wallet text-base text-brown-700"></i>
+                    </div>
+                    <p id="dashAllTotal" class="text-xl xs:text-2xl desktop:text-3xl font-semibold text-brown-950 tabular-nums tracking-tight truncate">฿0</p>
+                    <span id="dashAllSub" class="caption-5 text-brown-500 block mt-1 tabular-nums">รวม 0 บิล</span>
+                </button>
+
+                <!-- KPI 4: เตียงผ้าใบ (Sunbed) -->
+                <div class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200">
+                    <div class="flex items-center justify-between caption-4 text-brown-600 mb-2">
+                        <span>เตียงผ้าใบ (฿30)</span>
+                        <i class="ph ph-sun text-base text-amber-700"></i>
+                    </div>
+                    <p id="dashSunbedTotal" class="text-xl xs:text-2xl desktop:text-3xl font-semibold text-brown-950 tabular-nums tracking-tight truncate">0 เตียง</p>
+                    <span id="dashSunbedSub" class="caption-5 text-brown-500 block mt-1 tabular-nums">คิดเป็น ฿0</span>
+                </div>
+            </div>
+
+            <!-- Quick Shortcuts on Dashboard -->
+            <div class="grid grid-cols-2 gap-3 desktop:gap-4">
+                <button type="button" onclick="navigateTo('record')"
+                    class="bg-white hover:bg-brown-50 border border-brown-200 rounded-2xl py-3 px-4 flex items-center justify-center gap-2 button-sm text-brown-950 cursor-pointer">
+                    <i class="ph ph-plus-circle text-base text-brown-700 shrink-0"></i>
+                    <span>ลงบิลคอมเรือใหม่</span>
+                </button>
+                <button type="button" onclick="jumpToLedgerFilter('unpaid')"
+                    class="bg-white hover:bg-brown-50 border border-brown-200 rounded-2xl py-3 px-4 flex items-center justify-center gap-2 button-sm text-brown-950 cursor-pointer">
+                    <i class="ph ph-receipt text-base text-emerald-700 shrink-0"></i>
+                    <span>จัดการบิลค้างจ่าย</span>
+                </button>
+            </div>
+
+            <!-- Interactive Analytics Row: Settlement Ring + 7-Day Daily Trend Chart -->
+            <div class="grid grid-cols-1 fold:grid-cols-3 gap-4">
+                <!-- Settlement Ratio Ring -->
+                <div class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 flex items-center gap-4">
+                    <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
+                        <svg class="w-24 h-24 -rotate-90" viewBox="0 0 96 96" aria-hidden="true">
+                            <circle cx="48" cy="48" r="38" fill="none" stroke="#F3EDE4" stroke-width="10" />
+                            <circle id="dashRingProgress" cx="48" cy="48" r="38" fill="none" stroke="#047857" stroke-width="10"
+                                stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76" class="ring-progress-circle" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="dashPaidRatePct" class="text-base font-semibold text-brown-950 tabular-nums">0%</span>
+                            <span class="caption-5 text-brown-500">เคลียร์แล้ว</span>
+                        </div>
+                    </div>
+                    <div class="min-w-0 flex-1 space-y-2">
+                        <h3 class="title-4 font-semibold text-brown-950">อัตราเคลียร์บิล</h3>
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between caption-4">
+                                <span class="flex items-center gap-1 text-emerald-700"><span class="w-2 h-2 rounded-full bg-emerald-700"></span> จ่ายแล้ว</span>
+                                <span id="dashRingPaidAmt" class="font-semibold text-brown-950 tabular-nums">฿0</span>
+                            </div>
+                            <div class="flex items-center justify-between caption-4">
+                                <span class="flex items-center gap-1 text-brown-600"><span class="w-2 h-2 rounded-full bg-brown-300"></span> ค้างจ่าย</span>
+                                <span id="dashRingUnpaidAmt" class="font-semibold text-brown-950 tabular-nums">฿0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7-Day Daily Trend Interactive Bar Chart -->
+                <div class="fold:col-span-2 bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="title-4 font-semibold text-brown-900 flex items-center gap-2">
+                            <i class="ph ph-chart-line-up text-base text-brown-700"></i>
+                            <span>ยอดคอมมิชชั่นรายวัน (7 วันล่าสุดที่มีบิล)</span>
+                        </h3>
+                        <span id="dashChartHoverInfo" class="caption-4 text-brown-700 bg-brown-100 px-3 py-1 rounded-lg tabular-nums">แตะแท่งกราฟเพื่อดูยอด</span>
+                    </div>
+                    <div id="dashDailyChart" class="h-32 flex items-end justify-between gap-2 pt-4 border-b border-brown-100"></div>
+                </div>
+            </div>
+
+            <!-- Dashboard 2-Column Content Grid -->
+            <div class="grid grid-cols-1 fold:grid-cols-2 gap-4">
+
+                <!-- Left Column: Top Unpaid Boats + Category Breakdown -->
+                <div class="space-y-4">
+                    <div class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="title-4 font-semibold text-brown-900 flex items-center gap-2">
+                                <i class="ph ph-warning-circle text-base text-amber-700"></i>
+                                <span>เรือที่มียอดค้างจ่ายสูงสุด</span>
+                            </h3>
+                            <button type="button" onclick="jumpToBoatsGroupView()" class="caption-4 text-brown-700 hover:text-brown-950 underline cursor-pointer">ดูรายลำทั้งหมด</button>
+                        </div>
+                        <div id="dashUnpaidBoatsList" class="divide-y divide-brown-100 text-sm"></div>
+                    </div>
+
+                    <div class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="title-4 font-semibold text-brown-900 flex items-center gap-2">
+                                <i class="ph ph-chart-bar text-base text-brown-700"></i>
+                                <span>สัดส่วนค่าคอมแยกตาม 5 หมวดหมู่</span>
+                            </h3>
+                            <span id="dashCatPeriodLabel" class="caption-5 text-brown-500">ทั้งหมด</span>
+                        </div>
+                        <div id="dashCategoryBars" class="space-y-3 text-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Top Boats Ranking + Recent Bills -->
+                <div class="space-y-4">
+                    <div class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="title-4 font-semibold text-brown-900 flex items-center gap-2">
+                                <i class="ph ph-medal text-base text-brown-700"></i>
+                                <span>อันดับเรือยอดคอมสะสมสูงสุด</span>
+                            </h3>
+                            <span class="caption-5 text-brown-500">ขาประจำ</span>
+                        </div>
+                        <div id="dashTopBoatsList" class="divide-y divide-brown-100 text-sm"></div>
+                    </div>
+
+                    <div class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="title-4 font-semibold text-brown-900 flex items-center gap-2">
+                                <i class="ph ph-clock-counter-clockwise text-base text-brown-700"></i>
+                                <span>บิลคอมเรือล่าสุด</span>
+                            </h3>
+                            <button type="button" onclick="jumpToLedgerFilter('all')" class="caption-4 text-brown-700 hover:text-brown-950 underline cursor-pointer">ดูทั้งหมด</button>
+                        </div>
+                        <div id="dashRecentBillsList" class="divide-y divide-brown-100 text-sm"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SECTION 2: WORKSPACE (หน้าต่างจัดการบิล ⇄ ลงบิล กดสลับไปมาได้ตลอดเวลา)      -->
+        <!-- ========================================================================= -->
+        <section id="sec-workspace" class="hidden space-y-4 animate-in" aria-label="จัดการบิลและลงบิลคอมมิชชั่นเรือ">
+
+            <!-- IN-WORKSPACE SWITCHER BAR (Mobile only <740px; Desktop/Fold uses Top Nav) -->
+            <div class="fold:hidden bg-white p-2 rounded-2xl border border-brown-200 flex items-center justify-between gap-2">
+                <div class="flex-1 grid grid-cols-2 bg-brown-100 p-1 rounded-xl gap-1 min-w-0">
+                    <button type="button" onclick="navigateTo('record')" id="wsBtn-record"
+                        class="h-9 px-2 rounded-lg caption-3 cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap bg-white text-brown-950 shadow-2xs">
+                        <i class="ph ph-plus-circle text-sm shrink-0"></i>
+                        <span id="wsRecordBtnText">ลงบิลคอมเรือ</span>
+                    </button>
+                    <button type="button" onclick="navigateTo('ledger')" id="wsBtn-ledger"
+                        class="h-9 px-2 rounded-lg caption-4 cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap text-brown-700 hover:text-brown-950">
+                        <i class="ph ph-receipt text-sm shrink-0"></i>
+                        <span>จัดการบิล</span>
+                        <span id="wsBadgeUnpaid" class="px-2 py-0.5 rounded-full bg-brown-200 text-brown-900 caption-3 tabular-nums">0</span>
+                    </button>
+                </div>
+
+                <button type="button" onclick="navigateTo('dashboard')"
+                    class="inline-flex items-center gap-1 px-2 py-2 rounded-xl caption-4 text-brown-700 hover:text-brown-950 hover:bg-brown-100 cursor-pointer shrink-0 whitespace-nowrap"
+                    title="กลับแดชบอร์ด" aria-label="กลับแดชบอร์ด">
+                    <i class="ph ph-arrow-left text-sm"></i>
+                </button>
+            </div>
+
+            <!-- WORKSPACE GRID (1 Pane or Dual-Pane on Fold/PC) -->
+            <div id="workspaceGrid" class="workspace-grid workspace-single-container">
+
+                <!-- LEFT PANE: Record / Edit Commission Form -->
+                <div id="paneRecord" class="sticky-left-pane min-w-0 space-y-3">
+
+                    <!-- Entry Mode Toggle: Single Bill vs Batch Table -->
+                    <div id="entryModeBar" class="bg-white p-1.5 rounded-2xl border border-brown-200 grid grid-cols-2 gap-1">
+                        <button type="button" onclick="setEntryMode('single')" id="entryModeBtn-single"
+                            class="h-9 px-3 rounded-xl caption-3 cursor-pointer flex items-center justify-center gap-2 bg-brown-900 text-white">
+                            <i class="ph ph-note-pencil text-sm"></i>
+                            <span>ลงทีละบิล</span>
+                        </button>
+                        <button type="button" onclick="setEntryMode('batch')" id="entryModeBtn-batch"
+                            class="h-9 px-3 rounded-xl caption-4 cursor-pointer flex items-center justify-center gap-2 text-brown-700 hover:text-brown-950 hover:bg-brown-50">
+                            <i class="ph ph-table text-sm"></i>
+                            <span>ลงหลายเรือ (ตาราง)</span>
+                        </button>
+                    </div>
+
+                    <!-- Edit Mode Banner -->
+                    <div id="editBanner" class="hidden mb-3 bg-brown-900 text-white p-4 rounded-2xl flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <span class="caption-4 text-brown-300 block">โหมดแก้ไขบิล</span>
+                            <p id="editBannerSub" class="body-5 truncate">กำลังแก้ไขรายการ</p>
+                        </div>
+                        <button type="button" onclick="cancelEdit()" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-xl button-xsm shrink-0 cursor-pointer">
+                            ยกเลิก
+                        </button>
+                    </div>
+
+                    <form id="commissionForm" onsubmit="handleFormSubmit(event)" class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-4">
+                        <div class="flex items-center justify-between border-b border-brown-100 pb-3">
+                            <h2 class="title-4 font-semibold text-brown-950 flex items-center gap-2">
+                                <i class="ph ph-anchor text-base text-brown-700"></i>
+                                <span>บันทึกบิลคอมมิชชั่นเรือ</span>
+                            </h2>
+                            <div class="flex items-center gap-3">
+                                <button type="button" onclick="resetFormToNew()" class="caption-4 text-brown-500 hover:text-brown-950 cursor-pointer">ล้างฟอร์ม</button>
+                                <button type="button" onclick="switchWorkspacePane('ledger')" class="caption-3 text-brown-800 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                    <span>ไปหน้าจัดการบิล</span>
+                                    <i class="ph ph-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Boat Name + Frequent Boat Chips -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label for="f-boatName" class="caption-3 text-brown-800">ชื่อเรือ / เบอร์เรือ <span class="text-red-600">*</span></label>
+                                <button type="button" id="clearBoatBtn" onclick="clearBoatInput()" class="hidden caption-4 text-brown-500 hover:text-brown-950 cursor-pointer">ล้างชื่อเรือ</button>
+                            </div>
+                            <input type="text" id="f-boatName" name="boatName" list="boat-suggestions" required autocomplete="off"
+                                oninput="validateForm()"
+                                placeholder="ระบุชื่อเรือ หรือแตะเลือกด้านล่าง"
+                                class="w-full px-3 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-xl body-4 text-brown-950 outline-none">
+                            <datalist id="boat-suggestions"></datalist>
+
+                            <div class="mt-2">
+                                <div id="quickBoatChips" class="flex gap-2 overflow-x-auto no-scrollbar py-1"></div>
+                            </div>
+                        </div>
+
+                        <!-- Date & Time -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label for="f-recordDate" class="caption-4 text-brown-700">วันและเวลา</label>
+                                <button type="button" onclick="setNowDatetime()" class="caption-4 text-brown-800 hover:underline cursor-pointer">เวลานี้</button>
+                            </div>
+                            <input type="datetime-local" id="f-recordDate" name="recordDate" required
+                                class="w-full px-3 py-2 bg-brown-50 border border-brown-200 rounded-xl caption-4 text-brown-900 outline-none focus:border-brown-800 tabular-nums">
+                        </div>
+
+                        <!-- 4 Numeric Categories -->
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <label for="f-food" class="caption-4 text-brown-700 block mb-1">1. Food (อาหาร)</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brown-500 caption-4">฿</span>
+                                    <input type="number" id="f-food" name="food" placeholder="0" min="0" step="any" inputmode="decimal" oninput="updateTotal()"
+                                        class="no-spinner w-full pl-8 pr-3 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-xl body-4 text-brown-950 outline-none tabular-nums">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="f-jetBanana" class="caption-4 text-brown-700 block mb-1">2. Jet+B (เจ็ท/บานาน่า)</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brown-500 caption-4">฿</span>
+                                    <input type="number" id="f-jetBanana" name="jetBanana" placeholder="0" min="0" step="any" inputmode="decimal" oninput="updateTotal()"
+                                        class="no-spinner w-full pl-8 pr-3 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-xl body-4 text-brown-950 outline-none tabular-nums">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="f-motorbike" class="caption-4 text-brown-700 block mb-1">3. Bike (มอเตอร์ไซค์)</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brown-500 caption-4">฿</span>
+                                    <input type="number" id="f-motorbike" name="motorbike" placeholder="0" min="0" step="any" inputmode="decimal" oninput="updateTotal()"
+                                        class="no-spinner w-full pl-8 pr-3 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-xl body-4 text-brown-950 outline-none tabular-nums">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="f-other" class="caption-4 text-brown-700 block mb-1">5. Other (อื่นๆ)</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brown-500 caption-4">฿</span>
+                                    <input type="number" id="f-other" name="other" placeholder="0" min="0" step="any" inputmode="decimal" oninput="updateTotal()"
+                                        class="no-spinner w-full pl-8 pr-3 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-xl body-4 text-brown-950 outline-none tabular-nums">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Sunbed Stepper (Nested Radius: outer rounded-xl p-3 -> inner rounded-lg) -->
+                        <div class="p-3 rounded-xl bg-brown-50 border border-brown-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label for="f-sunbedQty" class="caption-3 text-brown-900">4. Sunbed (เตียงละ ฿30)</label>
+                                <span id="sunbedTotalText" class="caption-3 text-brown-950 tabular-nums">฿0</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="adjustSunbed(-1)"
+                                    class="w-9 h-9 rounded-lg bg-white border border-brown-200 hover:bg-brown-100 text-brown-900 font-semibold text-base flex items-center justify-center shrink-0 cursor-pointer" aria-label="ลดจำนวนเตียง">−</button>
+                                <div class="relative flex-1">
+                                    <input type="number" id="f-sunbedQty" name="sunbedQty" placeholder="0" min="0" step="1" inputmode="numeric" oninput="updateTotal()"
+                                        class="no-spinner w-full py-2 px-3 bg-white border border-brown-200 rounded-lg text-center body-4 text-brown-950 outline-none tabular-nums">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 caption-5 text-brown-400 pointer-events-none">เตียง</span>
+                                </div>
+                                <button type="button" onclick="adjustSunbed(1)"
+                                    class="w-9 h-9 rounded-lg bg-white border border-brown-200 hover:bg-brown-100 text-brown-900 font-semibold text-base flex items-center justify-center shrink-0 cursor-pointer" aria-label="เพิ่มจำนวนเตียง">+</button>
+                            </div>
+                            <div class="grid grid-cols-6 gap-1">
+                                <button type="button" onclick="setSunbedQty(0)" class="py-1 rounded-md bg-white border border-brown-200 caption-4 text-brown-700 hover:bg-brown-100 cursor-pointer">0</button>
+                                <button type="button" onclick="setSunbedQty(2)" class="py-1 rounded-md bg-white border border-brown-200 caption-4 text-brown-800 hover:bg-brown-100 cursor-pointer">2</button>
+                                <button type="button" onclick="setSunbedQty(4)" class="py-1 rounded-md bg-white border border-brown-200 caption-4 text-brown-800 hover:bg-brown-100 cursor-pointer">4</button>
+                                <button type="button" onclick="setSunbedQty(6)" class="py-1 rounded-md bg-white border border-brown-200 caption-4 text-brown-800 hover:bg-brown-100 cursor-pointer">6</button>
+                                <button type="button" onclick="setSunbedQty(8)" class="py-1 rounded-md bg-white border border-brown-200 caption-4 text-brown-800 hover:bg-brown-100 cursor-pointer">8</button>
+                                <button type="button" onclick="setSunbedQty(10)" class="py-1 rounded-md bg-white border border-brown-200 caption-4 text-brown-800 hover:bg-brown-100 cursor-pointer">10</button>
+                            </div>
+                        </div>
+
+                        <!-- Paid Toggle -->
+                        <label for="f-isPaid" class="flex items-center gap-2 py-1 cursor-pointer select-none">
+                            <input type="checkbox" id="f-isPaid" name="isPaid" class="w-4 h-4 rounded border-brown-300 text-brown-900 focus:ring-brown-800">
+                            <span class="caption-4 text-brown-800">จ่ายเงินสดให้เรือเรียบร้อยแล้ว</span>
+                        </label>
+
+                        <!-- Total & Submit -->
+                        <div class="pt-3 border-t border-brown-100 flex items-center justify-between gap-3">
+                            <div>
+                                <span class="caption-5 text-brown-500 block">ยอดสุทธิบิลนี้</span>
+                                <span id="totalDisplay" class="heading-6 text-brown-950 tabular-nums">฿0.00</span>
+                            </div>
+                            <button type="submit" id="submitBtn" disabled
+                                class="px-4 py-2 h-11 bg-brown-900 hover:bg-brown-800 text-white rounded-xl button-sm inline-flex items-center justify-center gap-2 disabled:opacity-35 disabled:pointer-events-none cursor-pointer">
+                                <i class="ph ph-check text-base"></i>
+                                <span>บันทึกบิล</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- BATCH TABLE ENTRY CARD (ลงหลายเรือพร้อมกันแบบตาราง แต่บันทึกเป็นการ์ดแยกทีละบิลเหมือนเดิม) -->
+                    <div id="batchCommissionCard" class="hidden bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-brown-100 pb-3">
+                            <div>
+                                <h2 class="title-4 font-semibold text-brown-950 flex items-center gap-2">
+                                    <i class="ph ph-table text-base text-brown-700"></i>
+                                    <span>ลงบิลคอมเรือแบบตาราง (หลายลำพร้อมกัน)</span>
+                                </h2>
+                                <p class="caption-5 text-brown-500 mt-0.5">กรอกได้ไม่จำกัดจำนวนแถว เมื่อกดบันทึกจะแยกสร้างเป็นการ์ดบิลทีละลำในชีทให้อัตโนมัติ</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="resetBatchRows()" class="caption-4 text-brown-500 hover:text-brown-950 cursor-pointer">ล้างตาราง</button>
+                            </div>
+                        </div>
+
+                        <!-- Shared Date & Time + Quick Paid All -->
+                        <div class="flex flex-wrap items-end justify-between gap-3 bg-brown-50 p-3 rounded-xl border border-brown-200">
+                            <div class="flex-1 min-w-[200px]">
+                                <div class="flex items-center justify-between mb-1">
+                                    <label for="batch-recordDate" class="caption-4 text-brown-700">วันและเวลารวม</label>
+                                    <button type="button" onclick="setBatchNowDatetime()" class="caption-4 text-brown-800 hover:underline cursor-pointer">เวลานี้</button>
+                                </div>
+                                <input type="datetime-local" id="batch-recordDate"
+                                    class="w-full px-3 py-2 bg-white border border-brown-200 rounded-xl caption-4 text-brown-900 outline-none focus:border-brown-800 tabular-nums">
+                            </div>
+                            <label for="batch-allPaid" class="inline-flex items-center gap-2 py-2 px-3 bg-white border border-brown-200 rounded-xl cursor-pointer select-none">
+                                <input type="checkbox" id="batch-allPaid" onchange="toggleBatchAllPaid(this.checked)" class="w-4 h-4 rounded border-brown-300 text-brown-900 focus:ring-brown-800">
+                                <span class="caption-4 text-brown-800">ติ๊กจ่ายแล้วทุกแถว</span>
+                            </label>
+                        </div>
+
+                        <!-- Spreadsheet Table -->
+                        <div class="overflow-x-auto border border-brown-200 rounded-xl">
+                            <table class="w-full text-left border-collapse min-w-[760px]">
+                                <thead>
+                                    <tr class="bg-brown-100 text-brown-800 caption-3 border-b border-brown-200">
+                                        <th class="py-2 px-2 text-center w-10">#</th>
+                                        <th class="py-2 px-2 min-w-[140px]">ชื่อเรือ / เบอร์เรือ</th>
+                                        <th class="py-2 px-2 w-24">1. Food (฿)</th>
+                                        <th class="py-2 px-2 w-24">2. Jet+B (฿)</th>
+                                        <th class="py-2 px-2 w-24">3. Bike (฿)</th>
+                                        <th class="py-2 px-2 w-24">4. เตียง (×30)</th>
+                                        <th class="py-2 px-2 w-24">5. Other (฿)</th>
+                                        <th class="py-2 px-2 w-24 text-right">รวม (฿)</th>
+                                        <th class="py-2 px-2 w-16 text-center">จ่ายแล้ว</th>
+                                        <th class="py-2 px-2 w-10 text-center">ลบ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batchTableBody" class="divide-y divide-brown-100 bg-white"></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Add Rows + Batch Submit -->
+                        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="addBatchRows(1)"
+                                    class="px-3 py-2 rounded-xl bg-brown-100 hover:bg-brown-200 text-brown-900 button-xsm inline-flex items-center gap-1 cursor-pointer">
+                                    <i class="ph ph-plus text-sm"></i>
+                                    <span>เพิ่ม 1 แถว</span>
+                                </button>
+                                <button type="button" onclick="addBatchRows(5)"
+                                    class="px-3 py-2 rounded-xl bg-brown-100 hover:bg-brown-200 text-brown-900 button-xsm inline-flex items-center gap-1 cursor-pointer">
+                                    <i class="ph ph-rows-plus-bottom text-sm"></i>
+                                    <span>เพิ่ม 5 แถว</span>
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-4 ml-auto">
+                                <div class="text-right">
+                                    <span id="batchCountLabel" class="caption-5 text-brown-500 block">พร้อมบันทึก 0 ลำ</span>
+                                    <span id="batchGrandTotal" class="heading-6 text-brown-950 tabular-nums">฿0.00</span>
+                                </div>
+                                <button type="button" id="batchSubmitBtn" onclick="handleBatchSubmit()" disabled
+                                    class="px-4 py-2 h-11 bg-brown-900 hover:bg-brown-800 text-white rounded-xl button-sm inline-flex items-center justify-center gap-2 disabled:opacity-35 disabled:pointer-events-none cursor-pointer">
+                                    <i class="ph ph-checks text-base"></i>
+                                    <span>บันทึกทั้งหมด</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANE: Commission Ledger & Boat Settlement -->
+                <div id="paneLedger" class="space-y-3 min-w-0">
+
+                    <!-- Filter & Summary Card -->
+                    <div class="bg-white p-4 desktop:p-6 rounded-2xl border border-brown-200 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-brown-100">
+                            <h2 class="title-4 font-semibold text-brown-950 flex items-center gap-2">
+                                <i class="ph ph-receipt text-base text-brown-700"></i>
+                                <span>รายการบิลคอมมิชชั่นเรือ</span>
+                            </h2>
+                            <button type="button" onclick="switchWorkspacePane('record')"
+                                class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-brown-100 hover:bg-brown-200 text-brown-950 button-xsm cursor-pointer">
+                                <i class="ph ph-plus text-sm"></i>
+                                <span>ลงบิลคอมเรือใหม่</span>
+                            </button>
+                        </div>
+
+                        <div class="flex items-baseline justify-between gap-2">
+                            <div>
+                                <span class="caption-5 text-brown-500 block">ยอดรวมรายการที่แสดง</span>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span id="grandTotalInline" class="heading-5 text-brown-950 tabular-nums">฿0</span>
+                                    <span id="itemCountInline" class="caption-4 text-brown-500 tabular-nums">0 บิล</span>
+                                </div>
+                            </div>
+                            <button type="button" id="payAllBtn" onclick="openBulkConfirm()" disabled
+                                class="inline-flex items-center gap-2 px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl button-xsm disabled:opacity-30 disabled:pointer-events-none cursor-pointer">
+                                <i class="ph ph-checks text-sm"></i>
+                                <span>จ่ายที่แสดง</span>
+                            </button>
+                        </div>
+
+                        <!-- Search + Boat Select -->
+                        <div class="grid grid-cols-1 xs:grid-cols-2 gap-2">
+                            <div class="relative">
+                                <i class="ph ph-magnifying-glass text-sm text-brown-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                                <input type="text" id="searchBox" oninput="onSearchInput()" placeholder="ค้นหาชื่อเรือ"
+                                    class="w-full pl-9 pr-8 py-2 bg-brown-50 border border-brown-200 rounded-xl caption-4 text-brown-950 outline-none focus:bg-white focus:border-brown-800">
+                                <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-brown-400 hover:text-brown-800 p-1 cursor-pointer" aria-label="ล้างคำค้นหา">
+                                    <i class="ph ph-x text-xs"></i>
+                                </button>
+                            </div>
+                            <select id="boatFilter" onchange="onDropdownBoatChange()" aria-label="เลือกกรองตามชื่อเรือ"
+                                class="w-full px-3 py-2 bg-brown-50 border border-brown-200 rounded-xl caption-4 text-brown-900 outline-none focus:bg-white focus:border-brown-800 cursor-pointer">
+                                <option value="">เรือทุกลำ</option>
+                            </select>
+                        </div>
+
+                        <!-- Unpaid Boat Filter Pills -->
+                        <div id="unpaidBoatPills" class="flex gap-2 overflow-x-auto no-scrollbar pt-1"></div>
+
+                        <!-- Status + Date + View Mode -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-brown-100">
+                            <div class="inline-flex bg-brown-100 p-1 rounded-xl gap-1">
+                                <button type="button" onclick="setStatusFilter('unpaid')" id="statusBtn-unpaid"
+                                    class="px-3 py-1 rounded-lg caption-3 cursor-pointer bg-white text-brown-950 shadow-2xs">ค้างจ่าย</button>
+                                <button type="button" onclick="setStatusFilter('paid')" id="statusBtn-paid"
+                                    class="px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950">จ่ายแล้ว</button>
+                                <button type="button" onclick="setStatusFilter('all')" id="statusBtn-all"
+                                    class="px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950">ทั้งหมด</button>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <select id="dateFilter" onchange="renderRecords()" aria-label="กรองตามช่วงเวลา"
+                                    class="px-3 py-1.5 bg-brown-100 rounded-xl caption-4 text-brown-800 outline-none cursor-pointer">
+                                    <option value="all">ทุกวัน</option>
+                                    <option value="today">วันนี้</option>
+                                    <option value="yesterday">เมื่อวาน</option>
+                                    <option value="7days">7 วัน</option>
+                                    <option value="30days">30 วัน</option>
+                                </select>
+
+                                <div class="inline-flex bg-brown-100 p-1 rounded-xl gap-1">
+                                    <button type="button" onclick="setListViewMode('bills')" id="viewMode-bills"
+                                        class="px-3 py-1 rounded-lg caption-3 cursor-pointer bg-white text-brown-950 shadow-2xs">รายบิล</button>
+                                    <button type="button" onclick="setListViewMode('boats')" id="viewMode-boats"
+                                        class="px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950">รายเรือ</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Records List -->
+                    <div id="recordsList" class="space-y-3 pb-6"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= MOBILE BOTTOM NAVIGATION BAR (Visible < 740px) ================= -->
+    <nav aria-label="เมนูหลักด้านล่าง"
+        class="fold:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-brown-200 px-3 pt-2 safe-pb">
+        <div class="max-w-md mx-auto grid grid-cols-3 gap-2">
+            <button type="button" onclick="navigateTo('dashboard')" id="botNav-dashboard"
+                class="flex flex-col items-center justify-center py-2 rounded-xl text-brown-950 bg-brown-100 font-semibold cursor-pointer">
+                <i class="ph ph-squares-four text-lg mb-0.5"></i>
+                <span class="caption-3">แดชบอร์ด</span>
+            </button>
+            <button type="button" onclick="navigateTo('ledger')" id="botNav-ledger"
+                class="relative flex flex-col items-center justify-center py-2 rounded-xl text-brown-500 hover:text-brown-900 font-medium cursor-pointer">
+                <i class="ph ph-receipt text-lg mb-0.5"></i>
+                <span class="caption-4">รายการบิล</span>
+                <span id="botBadgeUnpaid" class="absolute top-1 right-4 px-2 min-w-[20px] h-4 rounded-full bg-brown-900 text-white caption-3 flex items-center justify-center tabular-nums">0</span>
+            </button>
+            <button type="button" onclick="navigateTo('record')" id="botNav-record"
+                class="flex flex-col items-center justify-center py-2 rounded-xl text-brown-500 hover:text-brown-900 font-medium cursor-pointer">
+                <i class="ph ph-plus-circle text-lg mb-0.5"></i>
+                <span id="botNavRecordLabel" class="caption-4">ลงบิลใหม่</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ================= MODAL: CONFIRM DELETE ================= -->
+    <div id="deleteModal" role="dialog" aria-modal="true"
+        class="hidden fixed inset-0 bg-brown-950/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-xl border border-brown-200 animate-in text-center">
+            <h3 class="title-4 font-semibold text-brown-950 mb-2">ยืนยันการลบบิล</h3>
+            <p id="deleteDesc" class="text-brown-600 mb-6 body-6"></p>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="closeModal('deleteModal')"
+                    class="py-2 px-3 bg-brown-100 hover:bg-brown-200 text-brown-900 rounded-xl button-sm cursor-pointer">ยกเลิก</button>
+                <button type="button" onclick="processDelete()"
+                    class="py-2 px-3 bg-red-700 hover:bg-red-600 text-white rounded-xl button-sm cursor-pointer">ลบบิล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: CONFIRM PAYMENT ================= -->
+    <div id="confirmModal" role="dialog" aria-modal="true"
+        class="hidden fixed inset-0 bg-brown-950/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-xl border border-brown-200 animate-in text-center">
+            <h3 id="confirmTitle" class="title-4 font-semibold text-brown-950 mb-2">ยืนยันการจ่ายเงิน</h3>
+            <p id="confirmDesc" class="text-brown-600 mb-6 body-6"></p>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="closeModal('confirmModal')"
+                    class="py-2 px-3 bg-brown-100 hover:bg-brown-200 text-brown-900 rounded-xl button-sm cursor-pointer">ยกเลิก</button>
+                <button type="button" onclick="processPayment()"
+                    class="py-2 px-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl button-sm cursor-pointer">ยืนยันจ่ายแล้ว</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: LINE REPORT SUMMARY ================= -->
+    <div id="summaryModal" role="dialog" aria-modal="true"
+        class="hidden fixed inset-0 bg-brown-950/40 backdrop-blur-xs z-50 flex items-end fold:items-center justify-center p-0 fold:p-4">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl fold:rounded-2xl overflow-hidden flex flex-col max-h-[88vh] shadow-xl border border-brown-200 animate-in">
+            <div class="p-4 border-b border-brown-100 flex justify-between items-center">
+                <h3 class="title-4 font-semibold text-brown-950">สรุปรายงาน Mokiza Com (สำหรับส่ง LINE)</h3>
+                <button type="button" onclick="closeModal('summaryModal')" class="text-brown-400 hover:text-brown-900 p-1 cursor-pointer" aria-label="ปิด">
+                    <i class="ph ph-x text-base"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <pre id="lineSummaryPreview" class="p-4 rounded-xl bg-brown-50 border border-brown-200 caption-4 text-brown-950 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+            </div>
+            <div class="p-4 bg-white border-t border-brown-100 flex gap-2 safe-pb">
+                <button type="button" onclick="copyLineSummary()"
+                    class="flex-1 py-2 px-3 bg-brown-900 hover:bg-brown-800 text-white rounded-xl button-sm flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="ph ph-copy text-base"></i>
+                    <span>คัดลอกข้อความส่ง LINE</span>
+                </button>
+                <button type="button" onclick="closeModal('summaryModal')"
+                    class="px-4 py-2 bg-brown-100 hover:bg-brown-200 text-brown-900 rounded-xl button-sm cursor-pointer">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PROGRESS OVERLAY ================= -->
+    <div id="progressOverlay" class="hidden fixed inset-0 bg-brown-50/80 backdrop-blur-xs z-[60] flex items-center justify-center p-6">
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-brown-200 w-full max-w-xs text-center space-y-3">
+            <p class="caption-4 text-brown-600">กำลังบันทึกสถานะจ่ายเงิน</p>
+            <p id="progressText" class="heading-6 text-brown-950 tabular-nums">0 / 0</p>
+            <div class="w-full bg-brown-100 h-2 rounded-full overflow-hidden">
+                <div id="progressBar" class="bg-brown-900 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= APPLICATION LOGIC ================= -->
+    <script>
+        let scriptUrl = localStorage.getItem('mokiza_script_url') || "";
+        let records = [];
+        let currentFilteredRecords = [];
+        let dashRange = 'all';            // 'all' | 'today' | '7days' | 'month'
+        let statusFilter = 'unpaid';      // 'unpaid' | 'paid' | 'all'
+        let listViewMode = 'bills';       // 'bills' | 'boats'
+        let activeScreen = 'dashboard';   // 'dashboard' | 'ledger' | 'record' | 'split'
+        let entryMode = 'single';         // 'single' | 'batch'
+        let isInitialLoading = false;
+
+        let batchRows = [];
+        let batchNextKey = 1;
+
+        let currentEditId = null;
+        let recordToDelete = null;
+        let pendingPayment = { items: [] };
+        let expandedBoatGroups = new Set();
+        let lastLineSummaryText = "";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.remove('split-view-active');
+            document.getElementById('scriptUrlInput').value = scriptUrl;
+            setNowDatetime();
+            setBatchNowDatetime();
+            resetBatchRows();
+            updateTotal();
+            validateForm();
+
+            if (!scriptUrl) {
+                document.getElementById('settingsPanel').classList.remove('hidden');
+                setSyncIndicator('empty');
+                refreshAllViews();
+            } else {
+                isInitialLoading = true;
+                renderLoadingSkeletons();
+                fetchRecords(false);
+            }
+        });
+
+        // --- Helpers ---
+        function getLocalDatetime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            return now.toISOString().slice(0, 16);
+        }
+
+        function setNowDatetime() {
+            document.getElementById('f-recordDate').value = getLocalDatetime();
+        }
+
+        function normalizeName(name) {
+            if (name == null) return "";
+            return String(name).trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, '');
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return 'ไม่ระบุเวลา';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return String(dateStr);
+            return d.toLocaleString('th-TH', {
+                day: '2-digit', month: 'short', year: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function isSameDay(d1, d2) {
+            return d1.getFullYear() === d2.getFullYear() &&
+                   d1.getMonth() === d2.getMonth() &&
+                   d1.getDate() === d2.getDate();
+        }
+
+        function matchesDateRange(dateStr, rangeMode) {
+            if (rangeMode === 'all') return true;
+            if (!dateStr) return false;
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return false;
+            const now = new Date();
+            if (rangeMode === 'today') return isSameDay(d, now);
+            if (rangeMode === 'yesterday') {
+                const y = new Date(now);
+                y.setDate(now.getDate() - 1);
+                return isSameDay(d, y);
+            }
+            if (rangeMode === '7days') return d >= new Date(now.getTime() - 7 * 86400000);
+            if (rangeMode === '30days') return d >= new Date(now.getTime() - 30 * 86400000);
+            if (rangeMode === 'month') {
+                return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+            }
+            return true;
+        }
+
+        function setSyncIndicator(state) {
+            const dot = document.getElementById('syncDot');
+            if (!dot) return;
+            if (state === 'loading') dot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0";
+            else if (state === 'error') dot.className = "w-2 h-2 rounded-full bg-red-600 shrink-0";
+            else if (state === 'ok') dot.className = "w-2 h-2 rounded-full bg-emerald-600 shrink-0";
+            else dot.className = "w-2 h-2 rounded-full bg-brown-300 shrink-0";
+        }
+
+        let toastTimer = null;
+        function showStatus(message, type = 'success') {
+            const statusBox = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            statusText.innerText = message;
+            statusBox.className = `fixed bottom-20 fold:bottom-6 right-4 z-50 w-[calc(100%-2rem)] max-w-xs px-4 py-3 rounded-xl shadow-lg flex items-center justify-between gap-2 caption-4 animate-in ${type === 'error' ? 'bg-red-700 text-white' : 'bg-brown-900 text-white'}`;
+            statusBox.classList.remove('hidden');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(hideStatus, 3500);
+        }
+
+        function hideStatus() {
+            document.getElementById('statusMessage').classList.add('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // =========================================================================
+        // SKELETON LOADERS (B9: Layout-shaped loading placeholders)
+        // =========================================================================
+        function renderLoadingSkeletons() {
+            const skeletonRows = Array.from({ length: 4 }).map(() => `
+                <div class="py-3 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 flex-1">
+                        <div class="w-6 h-6 rounded-md skeleton-block shrink-0"></div>
+                        <div class="h-4 w-28 rounded-md skeleton-block"></div>
+                    </div>
+                    <div class="h-4 w-16 rounded-md skeleton-block"></div>
+                </div>
+            `).join('');
+
+            document.getElementById('dashUnpaidBoatsList').innerHTML = skeletonRows;
+            document.getElementById('dashTopBoatsList').innerHTML = skeletonRows;
+            document.getElementById('dashRecentBillsList').innerHTML = skeletonRows;
+            document.getElementById('recordsList').innerHTML = Array.from({ length: 3 }).map(() => `
+                <div class="bg-white rounded-2xl p-4 border border-brown-200 space-y-3">
+                    <div class="flex justify-between">
+                        <div class="h-4 w-32 rounded-md skeleton-block"></div>
+                        <div class="h-5 w-16 rounded-md skeleton-block"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="h-6 w-20 rounded-md skeleton-block"></div>
+                        <div class="h-6 w-24 rounded-md skeleton-block"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // =========================================================================
+        // FULLSCREEN TOGGLE
+        // =========================================================================
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {
+                    showStatus('เบราว์เซอร์นี้ไม่รองรับการขยายเต็มจออัตโนมัติ', 'error');
+                });
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fullscreenIcon');
+            const btn = document.getElementById('fullscreenBtn');
+            const isFs = Boolean(document.fullscreenElement);
+            if (icon) icon.className = isFs ? 'ph ph-arrows-in text-base' : 'ph ph-arrows-out text-base';
+            if (btn) {
+                btn.title = isFs ? 'ออกจากโหมดเต็มจอ' : 'เปิดเต็มจอ';
+                btn.setAttribute('aria-label', btn.title);
+            }
+        });
+
+        // =========================================================================
+        // UNIFIED NAVIGATION (แดชบอร์ด · จัดการบิล · ลงบิลคอมเรือ)
+        // =========================================================================
+        function navigateTo(target) {
+            activeScreen = target;
+            const secDash = document.getElementById('sec-dashboard');
+            const secWork = document.getElementById('sec-workspace');
+            const paneRec = document.getElementById('paneRecord');
+            const paneLed = document.getElementById('paneLedger');
+
+            const wsBtnRec = document.getElementById('wsBtn-record');
+            const wsBtnLed = document.getElementById('wsBtn-ledger');
+            const gridEl = document.getElementById('workspaceGrid');
+
+            const activeWs = "h-9 px-2 rounded-lg caption-3 cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap bg-white text-brown-950 shadow-2xs";
+            const inactiveWs = "h-9 px-2 rounded-lg caption-4 cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap text-brown-700 hover:text-brown-950";
+
+            if (target === 'dashboard') {
+                secDash.classList.remove('hidden');
+                secWork.classList.add('hidden');
+                if (!isInitialLoading) renderDashboard();
+            } else if (target === 'record') {
+                secDash.classList.add('hidden');
+                secWork.classList.remove('hidden');
+                paneRec.classList.remove('hidden');
+                paneLed.classList.add('hidden');
+                if (gridEl) {
+                    gridEl.classList.toggle('workspace-single-container', entryMode !== 'batch');
+                    gridEl.classList.toggle('workspace-batch-container', entryMode === 'batch');
+                }
+                if (wsBtnRec) wsBtnRec.className = activeWs;
+                if (wsBtnLed) wsBtnLed.className = inactiveWs;
+            } else if (target === 'ledger') {
+                secDash.classList.add('hidden');
+                secWork.classList.remove('hidden');
+                paneRec.classList.add('hidden');
+                paneLed.classList.remove('hidden');
+                if (gridEl) {
+                    gridEl.classList.add('workspace-single-container');
+                    gridEl.classList.remove('workspace-batch-container');
+                }
+                if (wsBtnRec) wsBtnRec.className = inactiveWs;
+                if (wsBtnLed) wsBtnLed.className = activeWs;
+            }
+
+            updateNavHighlights(target);
+        }
+
+        function switchWorkspacePane(pane) {
+            navigateTo(pane);
+        }
+
+        function updateNavHighlights(target) {
+            const topActive = "px-3 py-2 rounded-lg button-xsm cursor-pointer flex items-center gap-2 whitespace-nowrap bg-brown-900 text-white";
+            const topInactive = "px-3 py-2 rounded-lg caption-4 cursor-pointer flex items-center gap-2 whitespace-nowrap text-brown-700 hover:text-brown-950 hover:bg-white/60";
+
+            ['dashboard', 'ledger', 'record'].forEach(k => {
+                const topEl = document.getElementById(`topNav-${k}`);
+                if (topEl) topEl.className = (k === target) ? topActive : topInactive;
+
+                const botEl = document.getElementById(`botNav-${k}`);
+                if (botEl) {
+                    botEl.className = (k === target)
+                        ? "relative flex flex-col items-center justify-center py-2 rounded-xl text-brown-950 bg-brown-100 font-semibold cursor-pointer"
+                        : "relative flex flex-col items-center justify-center py-2 rounded-xl text-brown-500 hover:text-brown-900 font-medium cursor-pointer";
+                }
+            });
+        }
+
+        function jumpToLedgerFilter(status) {
+            setStatusFilter(status);
+            navigateTo('ledger');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function jumpToBoatsGroupView() {
+            setStatusFilter('unpaid');
+            setListViewMode('boats');
+            navigateTo('ledger');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterLedgerByBoat(boatName) {
+            document.getElementById('boatFilter').value = boatName;
+            setStatusFilter('unpaid');
+            setListViewMode('bills');
+            updateBoatDatalistAndChips();
+            renderRecords();
+            navigateTo('ledger');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // =========================================================================
+        // FIRST-TIME URL SETUP & PERSISTENCE (localStorage)
+        // =========================================================================
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('hidden');
+        }
+
+        function handleSaveUrlForm(e) {
+            e.preventDefault();
+            const val = document.getElementById('scriptUrlInput').value.trim();
+            if (!val) return showStatus('กรุณาวางลิงก์ Google Apps Script', 'error');
+            scriptUrl = val;
+            localStorage.setItem('mokiza_script_url', scriptUrl);
+            document.getElementById('settingsPanel').classList.add('hidden');
+            showStatus('บันทึกลิงก์เรียบร้อย กำลังซิงค์ข้อมูล');
+            isInitialLoading = true;
+            renderLoadingSkeletons();
+            fetchRecords(true);
+        }
+
+        function clearSavedUrl() {
+            localStorage.removeItem('mokiza_script_url');
+            scriptUrl = "";
+            document.getElementById('scriptUrlInput').value = "";
+            setSyncIndicator('empty');
+            showStatus('ล้างลิงก์ที่บันทึกไว้แล้ว กรุณาใส่ลิงก์ใหม่');
+        }
+
+        function ensureScriptUrlConfigured() {
+            if (!scriptUrl) {
+                document.getElementById('settingsPanel').classList.remove('hidden');
+                document.getElementById('scriptUrlInput').focus();
+                showStatus('กรุณาใส่ลิงก์ Google Apps Script ก่อนใช้งาน', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        // --- Data Fetching ---
+        async function fetchRecords(showToast = false) {
+            if (!scriptUrl) {
+                if (showToast) ensureScriptUrlConfigured();
+                return;
+            }
+            const spinner = document.getElementById('refreshSpinner');
+            spinner.classList.add('animate-spin');
+            setSyncIndicator('loading');
+
+            try {
+                const response = await fetch(`${scriptUrl}?t=${Date.now()}`);
+                const res = await response.json();
+                if (res.result === 'success') {
+                    isInitialLoading = false;
+                    const rawData = res.data || [];
+                    // กรณี Apps Script เวอร์ชันเก่าไม่ลบแถวแต่เพิ่มแถวว่างที่มี id เดียวกันไว้ (tombstone)
+                    // ให้ซ่อนรายการที่มี id ตรงกับแถวว่างนั้นออกทั้งหมด เพื่อให้การลบและแก้ไขทำงานได้ถูกต้อง 100%
+                    const tombstoneIds = new Set(
+                        rawData
+                            .filter(r => (r.boatName == null || String(r.boatName).trim() === '') && r.id != null && String(r.id).trim() !== '')
+                            .map(r => String(r.id))
+                    );
+                    records = rawData.filter(r =>
+                        r.boatName != null &&
+                        String(r.boatName).trim() !== '' &&
+                        !tombstoneIds.has(String(r.id))
+                    );
+                    refreshAllViews();
+                    setSyncIndicator('ok');
+                    if (showToast) showStatus('ซิงค์ข้อมูลล่าสุดเรียบร้อย');
+                } else {
+                    isInitialLoading = false;
+                    refreshAllViews();
+                    setSyncIndicator('error');
+                    showStatus('รูปแบบข้อมูลจากชีทไม่ถูกต้อง', 'error');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                isInitialLoading = false;
+                refreshAllViews();
+                setSyncIndicator('error');
+                showStatus('ดึงข้อมูลไม่สำเร็จ กรุณาตรวจสอบลิงก์หรืออินเทอร์เน็ต', 'error');
+            } finally {
+                spinner.classList.remove('animate-spin');
+            }
+        }
+
+        function refreshAllViews() {
+            updateBoatDatalistAndChips();
+            renderRecords();
+            renderDashboard();
+        }
+
+        // =========================================================================
+        // DASHBOARD RENDERING
+        // =========================================================================
+        function setDashRange(range) {
+            dashRange = range;
+            const active = "px-3 py-1 rounded-lg caption-3 cursor-pointer bg-white text-brown-950 shadow-2xs";
+            const inactive = "px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950";
+            const labels = { all: 'ทั้งหมด', today: 'วันนี้', '7days': '7 วันล่าสุด', month: 'เดือนนี้' };
+            ['all', 'today', '7days', 'month'].forEach(r => {
+                const el = document.getElementById(`dashRange-${r}`);
+                if (el) el.className = (r === range) ? active : inactive;
+            });
+            document.getElementById('dashCatPeriodLabel').innerText = labels[range] || 'ทั้งหมด';
+            renderDashboard();
+        }
+
+        function buildEmptyStateHtml(title, subtitle, btnLabel, btnOnClick) {
+            return `
+                <div class="py-8 px-4 text-center space-y-2">
+                    <div class="w-10 h-10 rounded-xl bg-brown-100 text-brown-600 flex items-center justify-center mx-auto">
+                        <i class="ph ph-anchor text-lg"></i>
+                    </div>
+                    <p class="title-4 text-brown-900">${title}</p>
+                    <p class="caption-5 text-brown-500 max-w-xs mx-auto">${subtitle}</p>
+                    ${btnLabel ? `<button type="button" onclick="${btnOnClick}" class="mt-2 px-3 py-2 rounded-xl bg-brown-900 hover:bg-brown-800 text-white button-xsm cursor-pointer">${btnLabel}</button>` : ''}
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            const periodRecords = records.filter(r => matchesDateRange(r.recordDate, dashRange));
+
+            let unpaidTotal = 0, unpaidCount = 0;
+            let paidTotal = 0, paidCount = 0;
+            let allTotal = 0;
+            let sunbedQtyTotal = 0, sunbedValTotal = 0;
+            let catSums = { food: 0, jetBanana: 0, motorbike: 0, sunbed: 0, other: 0 };
+
+            const unpaidBoatMap = new Map();
+            const allBoatMap = new Map();
+
+            periodRecords.forEach(r => {
+                const amt = parseFloat(r.total) || 0;
+                const sq = parseFloat(r.sunbedQty) || 0;
+                const sv = parseFloat(r.sunbedValue) || (sq * 30);
+                const fd = parseFloat(r.food) || 0;
+                const jb = parseFloat(r.jetBanana) || 0;
+                const mb = parseFloat(r.motorbike) || 0;
+                const ot = parseFloat(r.other) || 0;
+
+                allTotal += amt;
+                sunbedQtyTotal += sq;
+                sunbedValTotal += sv;
+
+                catSums.food += fd;
+                catSums.jetBanana += jb;
+                catSums.motorbike += mb;
+                catSums.sunbed += sv;
+                catSums.other += ot;
+
+                const nameStr = String(r.boatName).trim();
+                const norm = normalizeName(nameStr);
+
+                if (!allBoatMap.has(norm)) allBoatMap.set(norm, { norm, name: nameStr, total: 0, count: 0 });
+                const ab = allBoatMap.get(norm);
+                ab.total += amt;
+                ab.count += 1;
+
+                if (r.isPaid) {
+                    paidTotal += amt;
+                    paidCount += 1;
+                } else {
+                    unpaidTotal += amt;
+                    unpaidCount += 1;
+                    if (!unpaidBoatMap.has(norm)) unpaidBoatMap.set(norm, { norm, name: nameStr, total: 0, count: 0 });
+                    const ub = unpaidBoatMap.get(norm);
+                    ub.total += amt;
+                    ub.count += 1;
+                }
+            });
+
+            document.getElementById('dashUnpaidTotal').innerText = `฿${unpaidTotal.toLocaleString('th-TH')}`;
+            document.getElementById('dashUnpaidSub').innerText = `${unpaidCount} บิล · ${unpaidBoatMap.size} ลำเรือ`;
+            document.getElementById('dashPaidTotal').innerText = `฿${paidTotal.toLocaleString('th-TH')}`;
+            document.getElementById('dashPaidSub').innerText = `${paidCount} บิลที่จ่ายแล้ว`;
+            document.getElementById('dashAllTotal').innerText = `฿${allTotal.toLocaleString('th-TH')}`;
+            document.getElementById('dashAllSub').innerText = `รวม ${periodRecords.length} บิล`;
+            document.getElementById('dashSunbedTotal').innerText = `${sunbedQtyTotal.toLocaleString('th-TH')} เตียง`;
+            document.getElementById('dashSunbedSub').innerText = `คิดเป็น ฿${sunbedValTotal.toLocaleString('th-TH')}`;
+
+            // Settlement Ring Progress
+            const paidPct = allTotal > 0 ? Math.round((paidTotal / allTotal) * 100) : 0;
+            const ringEl = document.getElementById('dashRingProgress');
+            if (ringEl) {
+                const circumference = 238.76;
+                ringEl.style.strokeDashoffset = circumference - (circumference * paidPct) / 100;
+            }
+            document.getElementById('dashPaidRatePct').innerText = `${paidPct}%`;
+            document.getElementById('dashRingPaidAmt').innerText = `฿${paidTotal.toLocaleString('th-TH')}`;
+            document.getElementById('dashRingUnpaidAmt').innerText = `฿${unpaidTotal.toLocaleString('th-TH')}`;
+
+            // 7-Day Daily Trend Bar Chart
+            const dailyMap = new Map();
+            periodRecords.forEach(r => {
+                if (!r.recordDate) return;
+                const d = new Date(r.recordDate);
+                if (isNaN(d.getTime())) return;
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const label = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+                if (!dailyMap.has(key)) dailyMap.set(key, { key, label, total: 0, count: 0 });
+                const item = dailyMap.get(key);
+                item.total += (parseFloat(r.total) || 0);
+                item.count += 1;
+            });
+            const chartDays = Array.from(dailyMap.values()).sort((a, b) => a.key.localeCompare(b.key)).slice(-7);
+            const chartEl = document.getElementById('dashDailyChart');
+            const hoverInfoEl = document.getElementById('dashChartHoverInfo');
+            if (chartDays.length === 0) {
+                chartEl.innerHTML = `<div class="w-full text-center caption-5 text-brown-400 self-center">ยังไม่มีข้อมูลกราฟรายวัน</div>`;
+                if (hoverInfoEl) hoverInfoEl.innerText = 'ไม่มีข้อมูล';
+            } else {
+                const maxDayVal = Math.max(1, ...chartDays.map(d => d.total));
+                const latestDay = chartDays[chartDays.length - 1];
+                if (hoverInfoEl) hoverInfoEl.innerText = `${latestDay.label}: ฿${latestDay.total.toLocaleString('th-TH')} (${latestDay.count} บิล)`;
+                chartEl.innerHTML = chartDays.map((d, idx) => {
+                    const heightPct = Math.max(12, Math.round((d.total / maxDayVal) * 100));
+                    const isLatest = idx === chartDays.length - 1;
+                    return `
+                    <button type="button"
+                        onmouseenter="showDashChartInfo('${escapeHtml(d.label)}', ${d.total}, ${d.count})"
+                        onclick="showDashChartInfo('${escapeHtml(d.label)}', ${d.total}, ${d.count})"
+                        class="flex-1 h-full flex flex-col items-center justify-end gap-1 group cursor-pointer focus:outline-none">
+                        <span class="caption-5 text-brown-500 group-hover:text-brown-950 tabular-nums hidden xs:block">฿${d.total >= 1000 ? (d.total / 1000).toFixed(1) + 'k' : d.total}</span>
+                        <div class="w-full max-w-[36px] flex-1 flex items-end">
+                            <div class="w-full rounded-t-lg chart-bar-fill ${isLatest ? 'bg-brown-900' : 'bg-brown-300 group-hover:bg-brown-700'}" style="height: ${heightPct}%"></div>
+                        </div>
+                        <span class="caption-5 text-brown-600 group-hover:text-brown-950 whitespace-nowrap">${escapeHtml(d.label)}</span>
+                    </button>`;
+                }).join('');
+            }
+
+            const topUnpaid = Array.from(unpaidBoatMap.values()).sort((a, b) => b.total - a.total).slice(0, 6);
+            const unpaidListEl = document.getElementById('dashUnpaidBoatsList');
+            if (!scriptUrl) {
+                unpaidListEl.innerHTML = buildEmptyStateHtml('ยังไม่ได้เชื่อมต่อ Google Sheet', 'วางลิงก์ Apps Script ด้านบนเพื่อเริ่มดึงข้อมูลคอมเรือ', 'ตั้งค่าลิงก์เดี๋ยวนี้', 'toggleSettings()');
+            } else if (topUnpaid.length === 0) {
+                unpaidListEl.innerHTML = buildEmptyStateHtml('ไม่มีบิลค้างจ่าย', 'บิลคอมเรือทั้งหมดในช่วงเวลานี้เคลียร์จ่ายเรียบร้อยแล้ว', '', '');
+            } else {
+                unpaidListEl.innerHTML = topUnpaid.map((b, i) => {
+                    const safeName = escapeHtml(b.name);
+                    const normEsc = escapeHtml(b.norm).replace(/'/g, "\\'");
+                    const nameEsc = safeName.replace(/'/g, "\\'");
+                    return `
+                    <div class="py-3 flex items-center justify-between gap-2">
+                        <button type="button" onclick="filterLedgerByBoat('${nameEsc}')"
+                            class="flex items-center gap-2 min-w-0 text-left hover:opacity-80 cursor-pointer">
+                            <span class="w-6 h-6 rounded-lg bg-brown-100 text-brown-800 caption-3 flex items-center justify-center shrink-0 tabular-nums">${i + 1}</span>
+                            <span class="body-4 text-brown-950 truncate">${safeName}</span>
+                            <span class="text-brown-500 caption-5 shrink-0">(${b.count} บิล)</span>
+                        </button>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="body-4 text-brown-950 tabular-nums">฿${b.total.toLocaleString('th-TH')}</span>
+                            <button type="button" onclick="openBoatBulkConfirmFromAny('${normEsc}')"
+                                class="px-3 py-1 rounded-lg bg-brown-900 hover:bg-emerald-700 text-white button-xsm cursor-pointer">
+                                จ่าย
+                            </button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            const catItems = [
+                { label: '1. Food (อาหาร)', val: catSums.food },
+                { label: '2. Jet+B (เจ็ท/บานาน่า)', val: catSums.jetBanana },
+                { label: '3. Bike (มอเตอร์ไซค์)', val: catSums.motorbike },
+                { label: '4. Sunbed (เตียงผ้าใบ)', val: catSums.sunbed },
+                { label: '5. Other (อื่นๆ)', val: catSums.other },
+            ];
+            const maxCat = Math.max(1, ...catItems.map(c => c.val));
+            const sumCatAll = Math.max(1, catItems.reduce((s, c) => s + c.val, 0));
+            document.getElementById('dashCategoryBars').innerHTML = catItems.map(c => {
+                const barPct = Math.round((c.val / maxCat) * 100);
+                const sharePct = Math.round((c.val / sumCatAll) * 100);
+                return `
+                <div>
+                    <div class="flex justify-between caption-4 mb-1">
+                        <span class="text-brown-700">${c.label}</span>
+                        <span class="caption-3 text-brown-950 tabular-nums">฿${c.val.toLocaleString('th-TH')} <span class="text-brown-400 font-normal">(${sharePct}%)</span></span>
+                    </div>
+                    <div class="w-full h-2 bg-brown-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-brown-800 rounded-full chart-bar-fill" style="width: ${barPct}%"></div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const topAll = Array.from(allBoatMap.values()).sort((a, b) => b.total - a.total).slice(0, 6);
+            const topBoatsEl = document.getElementById('dashTopBoatsList');
+            if (topAll.length === 0) {
+                topBoatsEl.innerHTML = `<p class="py-6 text-center caption-5 text-brown-500">ยังไม่มีข้อมูลบิลในช่วงเวลานี้</p>`;
+            } else {
+                topBoatsEl.innerHTML = topAll.map((b, i) => `
+                    <div class="py-3 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-6 h-6 rounded-lg bg-brown-100 text-brown-800 caption-3 flex items-center justify-center shrink-0 tabular-nums">${i + 1}</span>
+                            <span class="body-4 text-brown-950 truncate">${escapeHtml(b.name)}</span>
+                            <span class="text-brown-500 caption-5 shrink-0">(${b.count} บิล)</span>
+                        </div>
+                        <span class="body-4 text-brown-950 tabular-nums shrink-0">฿${b.total.toLocaleString('th-TH')}</span>
+                    </div>
+                `).join('');
+            }
+
+            const recentBills = periodRecords.slice(0, 5);
+            const recBillsEl = document.getElementById('dashRecentBillsList');
+            if (recentBills.length === 0) {
+                recBillsEl.innerHTML = `<p class="py-6 text-center caption-5 text-brown-500">ไม่มีรายการบิลในช่วงเวลานี้</p>`;
+            } else {
+                recBillsEl.innerHTML = recentBills.map(r => `
+                    <div class="py-3 flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="body-4 text-brown-950 truncate">${escapeHtml(r.boatName)}</span>
+                                <span class="caption-3 px-2 py-0.5 rounded-md ${r.isPaid ? 'bg-emerald-50 text-emerald-700' : 'bg-brown-100 text-brown-700'}">
+                                    ${r.isPaid ? 'จ่ายแล้ว' : 'ค้างจ่าย'}
+                                </span>
+                            </div>
+                            <span class="caption-5 text-brown-500 block mt-0.5">${formatDisplayDate(r.recordDate)}</span>
+                        </div>
+                        <span class="body-4 text-brown-950 tabular-nums shrink-0">฿${Number(r.total).toLocaleString('th-TH')}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // =========================================================================
+        // RECORD & LEDGER LOGIC
+        // =========================================================================
+        function validateForm() {
+            const boatName = document.getElementById('f-boatName').value.trim();
+            document.getElementById('submitBtn').disabled = !boatName;
+            const clearBtn = document.getElementById('clearBoatBtn');
+            if (clearBtn) clearBtn.classList.toggle('hidden', !boatName);
+            highlightSelectedQuickBoatChip(boatName);
+        }
+
+        function clearBoatInput() {
+            const input = document.getElementById('f-boatName');
+            input.value = '';
+            validateForm();
+            input.focus();
+        }
+
+        function selectQuickBoat(name) {
+            document.getElementById('f-boatName').value = name;
+            validateForm();
+        }
+
+        function highlightSelectedQuickBoatChip(currentName) {
+            const norm = normalizeName(currentName);
+            document.querySelectorAll('.quick-boat-chip').forEach(btn => {
+                const chipNorm = btn.getAttribute('data-norm');
+                btn.className = (norm && chipNorm === norm)
+                    ? "quick-boat-chip shrink-0 px-3 py-1 rounded-lg caption-3 bg-brown-900 text-white cursor-pointer"
+                    : "quick-boat-chip shrink-0 px-3 py-1 rounded-lg caption-4 bg-brown-100 hover:bg-brown-200 text-brown-800 cursor-pointer";
+            });
+        }
+
+        function adjustSunbed(delta) {
+            const input = document.getElementById('f-sunbedQty');
+            const next = Math.max(0, (parseInt(input.value, 10) || 0) + delta);
+            input.value = next === 0 ? '' : next;
+            updateTotal();
+        }
+
+        function setSunbedQty(qty) {
+            document.getElementById('f-sunbedQty').value = qty === 0 ? '' : qty;
+            updateTotal();
+        }
+
+        function updateTotal() {
+            const food = parseFloat(document.getElementById('f-food').value) || 0;
+            const jet = parseFloat(document.getElementById('f-jetBanana').value) || 0;
+            const bike = parseFloat(document.getElementById('f-motorbike').value) || 0;
+            const other = parseFloat(document.getElementById('f-other').value) || 0;
+            const sbQty = parseFloat(document.getElementById('f-sunbedQty').value) || 0;
+            const sbVal = sbQty * 30;
+
+            document.getElementById('sunbedTotalText').innerText = `฿${sbVal.toLocaleString('th-TH')}`;
+            const total = food + jet + bike + other + sbVal;
+            document.getElementById('totalDisplay').innerText = `฿${total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function formatBoatNameForSheet(name) {
+            const s = String(name ?? '').trim();
+            // ป้องกัน Google Sheet ตัดเลข 0 นำหน้า (เช่น 054 -> 54) โดยใส่เครื่องหมาย ' นำหน้าเมื่อส่งเข้าชีท
+            return /^0\d+$/.test(s) ? `'${s}` : s;
+        }
+
+        function showDashChartInfo(label, total, count) {
+            const el = document.getElementById('dashChartHoverInfo');
+            if (el) el.innerText = `${label}: ฿${Number(total).toLocaleString('th-TH')} (${count} บิล)`;
+        }
+
+        function setEntryMode(mode) {
+            entryMode = mode;
+            const formEl = document.getElementById('commissionForm');
+            const batchEl = document.getElementById('batchCommissionCard');
+            const btnSingle = document.getElementById('entryModeBtn-single');
+            const btnBatch = document.getElementById('entryModeBtn-batch');
+            const gridEl = document.getElementById('workspaceGrid');
+
+            const activeCls = "h-9 px-3 rounded-xl caption-3 cursor-pointer flex items-center justify-center gap-2 bg-brown-900 text-white";
+            const inactiveCls = "h-9 px-3 rounded-xl caption-4 cursor-pointer flex items-center justify-center gap-2 text-brown-700 hover:text-brown-950 hover:bg-brown-50";
+
+            if (mode === 'batch') {
+                formEl.classList.add('hidden');
+                batchEl.classList.remove('hidden');
+                btnSingle.className = inactiveCls;
+                btnBatch.className = activeCls;
+                if (gridEl) {
+                    gridEl.classList.remove('workspace-single-container');
+                    gridEl.classList.add('workspace-batch-container');
+                }
+                renderBatchTable();
+            } else {
+                formEl.classList.remove('hidden');
+                batchEl.classList.add('hidden');
+                btnSingle.className = activeCls;
+                btnBatch.className = inactiveCls;
+                if (gridEl) {
+                    gridEl.classList.add('workspace-single-container');
+                    gridEl.classList.remove('workspace-batch-container');
+                }
+            }
+        }
+
+        function setBatchNowDatetime() {
+            const el = document.getElementById('batch-recordDate');
+            if (el) el.value = getLocalDatetime();
+        }
+
+        function createEmptyBatchRow(isPaidDefault = false) {
+            return {
+                key: batchNextKey++,
+                boatName: '',
+                food: '',
+                jetBanana: '',
+                motorbike: '',
+                sunbedQty: '',
+                other: '',
+                isPaid: isPaidDefault
+            };
+        }
+
+        function resetBatchRows() {
+            const allPaidEl = document.getElementById('batch-allPaid');
+            if (allPaidEl) allPaidEl.checked = false;
+            batchRows = [
+                createEmptyBatchRow(false),
+                createEmptyBatchRow(false),
+                createEmptyBatchRow(false),
+                createEmptyBatchRow(false),
+                createEmptyBatchRow(false)
+            ];
+            renderBatchTable();
+        }
+
+        function addBatchRows(count = 1) {
+            const allPaid = Boolean(document.getElementById('batch-allPaid')?.checked);
+            for (let i = 0; i < count; i++) {
+                batchRows.push(createEmptyBatchRow(allPaid));
+            }
+            renderBatchTable();
+        }
+
+        function removeBatchRow(key) {
+            if (batchRows.length <= 1) {
+                batchRows = [createEmptyBatchRow(Boolean(document.getElementById('batch-allPaid')?.checked))];
+            } else {
+                batchRows = batchRows.filter(r => r.key !== key);
+            }
+            renderBatchTable();
+        }
+
+        function toggleBatchAllPaid(checked) {
+            batchRows.forEach(r => { r.isPaid = checked; });
+            renderBatchTable();
+        }
+
+        function calcBatchRowTotal(r) {
+            return (parseFloat(r.food) || 0)
+                + (parseFloat(r.jetBanana) || 0)
+                + (parseFloat(r.motorbike) || 0)
+                + ((parseFloat(r.sunbedQty) || 0) * 30)
+                + (parseFloat(r.other) || 0);
+        }
+
+        function updateBatchRowField(key, field, value) {
+            const row = batchRows.find(r => r.key === key);
+            if (!row) return;
+            row[field] = value;
+            const rowTotalEl = document.getElementById(`batchRowTotal-${key}`);
+            if (rowTotalEl) {
+                rowTotalEl.innerText = `฿${calcBatchRowTotal(row).toLocaleString('th-TH')}`;
+            }
+            updateBatchSummary();
+        }
+
+        function updateBatchSummary() {
+            const validRows = batchRows.filter(r => String(r.boatName).trim() !== '');
+            const grandTotal = validRows.reduce((sum, r) => sum + calcBatchRowTotal(r), 0);
+            const countEl = document.getElementById('batchCountLabel');
+            const totalEl = document.getElementById('batchGrandTotal');
+            const submitEl = document.getElementById('batchSubmitBtn');
+            if (countEl) countEl.innerText = `พร้อมบันทึก ${validRows.length} ลำ`;
+            if (totalEl) totalEl.innerText = `฿${grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (submitEl) submitEl.disabled = validRows.length === 0;
+        }
+
+        function renderBatchTable() {
+            const tbody = document.getElementById('batchTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = batchRows.map((r, idx) => {
+                const rowTotal = calcBatchRowTotal(r);
+                return `
+                <tr class="hover:bg-brown-50">
+                    <td class="p-2 text-center caption-4 text-brown-500 tabular-nums">${idx + 1}</td>
+                    <td class="p-1">
+                        <input type="text" list="boat-suggestions" autocomplete="off"
+                            value="${escapeHtml(r.boatName)}"
+                            oninput="updateBatchRowField(${r.key}, 'boatName', this.value)"
+                            placeholder="เช่น 054, Mr Rong"
+                            class="w-full px-2 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-lg caption-3 text-brown-950 outline-none">
+                    </td>
+                    <td class="p-1">
+                        <input type="number" min="0" step="any" inputmode="decimal" placeholder="0"
+                            value="${escapeHtml(r.food)}"
+                            oninput="updateBatchRowField(${r.key}, 'food', this.value)"
+                            class="no-spinner w-full px-2 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-lg caption-4 text-brown-950 outline-none tabular-nums text-right">
+                    </td>
+                    <td class="p-1">
+                        <input type="number" min="0" step="any" inputmode="decimal" placeholder="0"
+                            value="${escapeHtml(r.jetBanana)}"
+                            oninput="updateBatchRowField(${r.key}, 'jetBanana', this.value)"
+                            class="no-spinner w-full px-2 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-lg caption-4 text-brown-950 outline-none tabular-nums text-right">
+                    </td>
+                    <td class="p-1">
+                        <input type="number" min="0" step="any" inputmode="decimal" placeholder="0"
+                            value="${escapeHtml(r.motorbike)}"
+                            oninput="updateBatchRowField(${r.key}, 'motorbike', this.value)"
+                            class="no-spinner w-full px-2 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-lg caption-4 text-brown-950 outline-none tabular-nums text-right">
+                    </td>
+                    <td class="p-1">
+                        <input type="number" min="0" step="1" inputmode="numeric" placeholder="0"
+                            value="${escapeHtml(r.sunbedQty)}"
+                            oninput="updateBatchRowField(${r.key}, 'sunbedQty', this.value)"
+                            class="no-spinner w-full px-2 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-lg caption-4 text-brown-950 outline-none tabular-nums text-right">
+                    </td>
+                    <td class="p-1">
+                        <input type="number" min="0" step="any" inputmode="decimal" placeholder="0"
+                            value="${escapeHtml(r.other)}"
+                            oninput="updateBatchRowField(${r.key}, 'other', this.value)"
+                            class="no-spinner w-full px-2 py-2 bg-brown-50 focus:bg-white border border-brown-200 focus:border-brown-800 rounded-lg caption-4 text-brown-950 outline-none tabular-nums text-right">
+                    </td>
+                    <td class="p-2 text-right caption-3 text-brown-950 tabular-nums" id="batchRowTotal-${r.key}">฿${rowTotal.toLocaleString('th-TH')}</td>
+                    <td class="p-2 text-center">
+                        <input type="checkbox" ${r.isPaid ? 'checked' : ''}
+                            onchange="updateBatchRowField(${r.key}, 'isPaid', this.checked)"
+                            class="w-4 h-4 rounded border-brown-300 text-brown-900 focus:ring-brown-800 cursor-pointer" aria-label="จ่ายแล้ว">
+                    </td>
+                    <td class="p-1 text-center">
+                        <button type="button" onclick="removeBatchRow(${r.key})"
+                            class="w-7 h-7 rounded-lg text-brown-400 hover:text-red-700 hover:bg-red-50 inline-flex items-center justify-center cursor-pointer" aria-label="ลบแถว">
+                            <i class="ph ph-x text-sm"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+            updateBatchSummary();
+        }
+
+        async function handleBatchSubmit() {
+            if (!ensureScriptUrlConfigured()) return;
+            const validRows = batchRows.filter(r => String(r.boatName).trim() !== '');
+            if (validRows.length === 0) return showStatus('กรุณาระบุชื่อเรืออย่างน้อย 1 แถว', 'error');
+
+            const recordDateVal = document.getElementById('batch-recordDate').value || getLocalDatetime();
+            const overlay = document.getElementById('progressOverlay');
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            overlay.classList.remove('hidden');
+
+            let count = 0;
+            const total = validRows.length;
+            const baseTs = Date.now();
+            progressText.innerText = `0 / ${total}`;
+            progressBar.style.width = '0%';
+            setSyncIndicator('loading');
+
+            try {
+                const BATCH_SIZE = 4;
+                const createdRecords = [];
+                for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
+                    const chunk = validRows.slice(i, i + BATCH_SIZE);
+                    await Promise.all(chunk.map(async (row, offset) => {
+                        const idx = i + offset;
+                        const idStr = String(baseTs + idx);
+                        const boatName = String(row.boatName).trim();
+                        const foodVal = parseFloat(row.food) || 0;
+                        const jetVal = parseFloat(row.jetBanana) || 0;
+                        const bikeVal = parseFloat(row.motorbike) || 0;
+                        const sbQtyVal = parseFloat(row.sunbedQty) || 0;
+                        const otherVal = parseFloat(row.other) || 0;
+                        const isPaidVal = Boolean(row.isPaid);
+
+                        const fd = new FormData();
+                        fd.append('action', 'save');
+                        fd.append('id', idStr);
+                        fd.append('recordDate', recordDateVal);
+                        fd.append('boatName', formatBoatNameForSheet(boatName));
+                        fd.append('food', foodVal);
+                        fd.append('jetBanana', jetVal);
+                        fd.append('motorbike', bikeVal);
+                        fd.append('sunbedQty', sbQtyVal);
+                        fd.append('other', otherVal);
+                        fd.append('isPaid', isPaidVal);
+
+                        await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: fd });
+                        createdRecords.push({
+                            id: idStr, recordDate: recordDateVal, boatName,
+                            food: foodVal, jetBanana: jetVal, motorbike: bikeVal,
+                            sunbedQty: sbQtyVal, sunbedValue: sbQtyVal * 30, other: otherVal,
+                            total: foodVal + jetVal + bikeVal + (sbQtyVal * 30) + otherVal,
+                            isPaid: isPaidVal
+                        });
+                        count++;
+                        progressText.innerText = `${count} / ${total}`;
+                        progressBar.style.width = `${(count / total) * 100}%`;
+                    }));
+                }
+
+                records = [...createdRecords, ...records];
+                resetBatchRows();
+                refreshAllViews();
+                setSyncIndicator('ok');
+                showStatus(`บันทึกบิลคอมเรือพร้อมกัน ${total} ลำเรียบร้อย`);
+                setTimeout(() => fetchRecords(false), 1200);
+            } catch (err) {
+                setSyncIndicator('error');
+                showStatus('เกิดข้อผิดพลาดในการบันทึกบางรายการ', 'error');
+            } finally {
+                overlay.classList.add('hidden');
+                progressBar.style.width = '0%';
+            }
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            if (!ensureScriptUrlConfigured()) return;
+
+            const boatName = document.getElementById('f-boatName').value.trim();
+            if (!boatName) return showStatus('กรุณาระบุชื่อเรือ', 'error');
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="ph ph-spinner animate-spin text-base"></i><span>กำลังบันทึก</span>`;
+            setSyncIndicator('loading');
+
+            const foodVal = parseFloat(document.getElementById('f-food').value) || 0;
+            const jetVal = parseFloat(document.getElementById('f-jetBanana').value) || 0;
+            const bikeVal = parseFloat(document.getElementById('f-motorbike').value) || 0;
+            const sbQtyVal = parseFloat(document.getElementById('f-sunbedQty').value) || 0;
+            const otherVal = parseFloat(document.getElementById('f-other').value) || 0;
+            const isPaidVal = document.getElementById('f-isPaid').checked;
+            const recordDateVal = document.getElementById('f-recordDate').value || getLocalDatetime();
+
+            try {
+                const isEditing = Boolean(currentEditId);
+                const oldEditId = isEditing ? String(currentEditId) : null;
+                const idStr = Date.now().toString();
+
+                // หากเป็นการแก้ไข: ลบแถวเก่าออกก่อน แล้วบันทึกแถวใหม่ด้วย id ใหม่
+                // เพื่อป้องกันบัคข้อมูลซ้ำซ้อนบน Google Apps Script ที่ไม่มี action 'update'
+                if (isEditing && oldEditId) {
+                    const delFd = new FormData();
+                    delFd.append('action', 'delete');
+                    delFd.append('id', oldEditId);
+                    await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: delFd });
+                }
+
+                const formData = new FormData();
+                formData.append('action', 'save');
+                formData.append('id', idStr);
+                formData.append('recordDate', recordDateVal);
+                formData.append('boatName', formatBoatNameForSheet(boatName));
+                formData.append('food', foodVal);
+                formData.append('jetBanana', jetVal);
+                formData.append('motorbike', bikeVal);
+                formData.append('sunbedQty', sbQtyVal);
+                formData.append('other', otherVal);
+                formData.append('isPaid', isPaidVal);
+
+                await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: formData });
+
+                const newRec = {
+                    id: idStr, recordDate: recordDateVal, boatName: String(boatName),
+                    food: foodVal, jetBanana: jetVal, motorbike: bikeVal,
+                    sunbedQty: sbQtyVal, sunbedValue: sbQtyVal * 30, other: otherVal,
+                    total: foodVal + jetVal + bikeVal + (sbQtyVal * 30) + otherVal,
+                    isPaid: isPaidVal
+                };
+
+                if (isEditing && oldEditId) {
+                    const idx = records.findIndex(r => String(r.id) === oldEditId);
+                    if (idx !== -1) records[idx] = newRec;
+                    else records.unshift(newRec);
+                    showStatus(`อัปเดตบิลเรือ ${boatName} เรียบร้อย`);
+                    cancelEdit();
+                } else {
+                    records.unshift(newRec);
+                    showStatus(`บันทึกบิลเรือ ${boatName} เรียบร้อย`);
+                    resetFormToNew();
+                }
+
+                refreshAllViews();
+                setSyncIndicator('ok');
+                setTimeout(() => fetchRecords(false), 2200);
+            } catch (err) {
+                setSyncIndicator('error');
+                showStatus('บันทึกไม่สำเร็จ กรุณาลองใหม่', 'error');
+            } finally {
+                btn.disabled = false;
+                restoreSubmitButtonStyle();
+                validateForm();
+            }
+        }
+
+        function resetFormToNew() {
+            currentEditId = null;
+            document.getElementById('editBanner').classList.add('hidden');
+            document.getElementById('botNavRecordLabel').innerText = 'ลงบิลใหม่';
+            document.getElementById('topNavRecordLabel').innerText = 'ลงบิลคอมเรือ';
+            document.getElementById('wsRecordBtnText').innerText = 'ลงบิลคอมเรือ';
+            document.getElementById('commissionForm').reset();
+            setNowDatetime();
+            restoreSubmitButtonStyle();
+            updateTotal();
+            validateForm();
+        }
+
+        function restoreSubmitButtonStyle() {
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = `<i class="ph ph-check text-base"></i><span>${currentEditId ? 'อัปเดตบิล' : 'บันทึกบิล'}</span>`;
+        }
+
+        function updateBoatDatalistAndChips() {
+            const datalist = document.getElementById('boat-suggestions');
+            const filterSelect = document.getElementById('boatFilter');
+            const quickChipsContainer = document.getElementById('quickBoatChips');
+            const unpaidPillsContainer = document.getElementById('unpaidBoatPills');
+
+            const boatStats = new Map();
+            let totalUnpaidBills = 0;
+
+            records.forEach(r => {
+                if (r.boatName == null || String(r.boatName).trim() === '') return;
+                const nameStr = String(r.boatName).trim();
+                const norm = normalizeName(nameStr);
+                if (!norm) return;
+                if (!boatStats.has(norm)) {
+                    boatStats.set(norm, { norm, displayName: nameStr, count: 0, unpaidTotal: 0, unpaidCount: 0 });
+                }
+                const st = boatStats.get(norm);
+                st.count += 1;
+                if (!r.isPaid) {
+                    st.unpaidCount += 1;
+                    st.unpaidTotal += (parseFloat(r.total) || 0);
+                    totalUnpaidBills += 1;
+                }
+            });
+
+            document.getElementById('topBadgeUnpaid').innerText = totalUnpaidBills;
+            document.getElementById('botBadgeUnpaid').innerText = totalUnpaidBills;
+            document.getElementById('wsBadgeUnpaid').innerText = totalUnpaidBills;
+
+            const allBoats = Array.from(boatStats.values()).sort((a, b) => a.displayName.localeCompare(b.displayName, 'th'));
+            datalist.innerHTML = allBoats.map(b => `<option value="${escapeHtml(b.displayName)}">`).join('');
+
+            const currentVal = filterSelect.value;
+            filterSelect.innerHTML = `<option value="">เรือทุกลำ (${allBoats.length})</option>` +
+                allBoats.map(b => `<option value="${escapeHtml(b.displayName)}" ${normalizeName(currentVal) === b.norm ? 'selected' : ''}>${escapeHtml(b.displayName)}</option>`).join('');
+
+            const topFrequent = Array.from(boatStats.values()).sort((a, b) => b.count - a.count).slice(0, 10);
+            quickChipsContainer.innerHTML = topFrequent.map(b => `
+                <button type="button" data-norm="${escapeHtml(b.norm)}"
+                    onclick="selectQuickBoat('${escapeHtml(b.displayName).replace(/'/g, "\\'")}')"
+                    class="quick-boat-chip shrink-0 px-3 py-1 rounded-lg caption-4 bg-brown-100 hover:bg-brown-200 text-brown-800 cursor-pointer">
+                    ${escapeHtml(b.displayName)}
+                </button>
+            `).join('');
+            highlightSelectedQuickBoatChip(document.getElementById('f-boatName').value);
+
+            const unpaidBoats = Array.from(boatStats.values()).filter(b => b.unpaidCount > 0).sort((a, b) => b.unpaidTotal - a.unpaidTotal);
+            const activeFilterNorm = normalizeName(filterSelect.value);
+            if (unpaidBoats.length === 0) {
+                unpaidPillsContainer.innerHTML = '';
+            } else {
+                const allActive = !activeFilterNorm;
+                unpaidPillsContainer.innerHTML = `
+                    <button type="button" onclick="selectBoatFilterPill('')"
+                        class="shrink-0 px-3 py-1 rounded-lg caption-4 cursor-pointer ${allActive ? 'bg-brown-900 text-white' : 'bg-brown-100 text-brown-800 hover:bg-brown-200'}">
+                        ค้างทุกลำ (${unpaidBoats.length})
+                    </button>
+                ` + unpaidBoats.map(b => {
+                    const isSelected = activeFilterNorm === b.norm;
+                    return `
+                        <button type="button" onclick="selectBoatFilterPill('${escapeHtml(b.displayName).replace(/'/g, "\\'")}')"
+                            class="shrink-0 px-3 py-1 rounded-lg caption-4 cursor-pointer flex items-center gap-2 ${isSelected ? 'bg-brown-900 text-white' : 'bg-brown-100 text-brown-800 hover:bg-brown-200'}">
+                            <span>${escapeHtml(b.displayName)}</span>
+                            <span class="tabular-nums font-semibold ${isSelected ? 'text-amber-300' : 'text-brown-600'}">฿${b.unpaidTotal.toLocaleString('th-TH')}</span>
+                        </button>
+                    `;
+                }).join('');
+            }
+        }
+
+        function setStatusFilter(status) {
+            statusFilter = status;
+            const activeCls = 'px-3 py-1 rounded-lg caption-3 cursor-pointer bg-white text-brown-950 shadow-2xs';
+            const inactiveCls = 'px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950';
+            ['unpaid', 'paid', 'all'].forEach(k => {
+                const el = document.getElementById(`statusBtn-${k}`);
+                if (el) el.className = (k === status) ? activeCls : inactiveCls;
+            });
+            renderRecords();
+        }
+
+        function setListViewMode(mode) {
+            listViewMode = mode;
+            const active = "px-3 py-1 rounded-lg caption-3 cursor-pointer bg-white text-brown-950 shadow-2xs";
+            const inactive = "px-3 py-1 rounded-lg caption-4 cursor-pointer text-brown-600 hover:text-brown-950";
+            document.getElementById('viewMode-bills').className = mode === 'bills' ? active : inactive;
+            document.getElementById('viewMode-boats').className = mode === 'boats' ? active : inactive;
+            renderRecords();
+        }
+
+        function selectBoatFilterPill(boatName) {
+            const filterSelect = document.getElementById('boatFilter');
+            filterSelect.value = (normalizeName(filterSelect.value) === normalizeName(boatName)) ? '' : boatName;
+            updateBoatDatalistAndChips();
+            renderRecords();
+        }
+
+        function onDropdownBoatChange() {
+            updateBoatDatalistAndChips();
+            renderRecords();
+        }
+
+        function onSearchInput() {
+            const val = document.getElementById('searchBox').value;
+            document.getElementById('clearSearchBtn').classList.toggle('hidden', !val);
+            renderRecords();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchBox').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            renderRecords();
+        }
+
+        function buildMinimalBreakdownTags(item) {
+            const tags = [];
+            const food = parseFloat(item.food) || 0;
+            const jet = parseFloat(item.jetBanana) || 0;
+            const bike = parseFloat(item.motorbike) || 0;
+            const sbQty = parseFloat(item.sunbedQty) || 0;
+            const sbVal = parseFloat(item.sunbedValue) || (sbQty * 30);
+            const other = parseFloat(item.other) || 0;
+
+            if (food > 0) tags.push(`Food ฿${food.toLocaleString('th-TH')}`);
+            if (jet > 0) tags.push(`Jet+B ฿${jet.toLocaleString('th-TH')}`);
+            if (bike > 0) tags.push(`Bike ฿${bike.toLocaleString('th-TH')}`);
+            if (sbVal > 0) tags.push(`เตียง${sbQty > 0 ? '×' + sbQty : ''} ฿${sbVal.toLocaleString('th-TH')}`);
+            if (other > 0) tags.push(`Other ฿${other.toLocaleString('th-TH')}`);
+
+            if (tags.length === 0) return `<span class="caption-5 text-brown-400">ไม่มีรายละเอียดหมวด</span>`;
+            return tags.map(t => `<span class="inline-block px-2 py-1 rounded-md bg-brown-100 text-brown-800 caption-4 tabular-nums">${t}</span>`).join('');
+        }
+
+        function getUnpaidStatsByBoat() {
+            const map = new Map();
+            records.forEach(r => {
+                if (r.isPaid || r.boatName == null) return;
+                const name = String(r.boatName).trim();
+                const norm = normalizeName(name);
+                if (!norm) return;
+                if (!map.has(norm)) map.set(norm, { name, count: 0, total: 0 });
+                const st = map.get(norm);
+                st.count += 1;
+                st.total += (parseFloat(r.total) || 0);
+            });
+            return map;
+        }
+
+        function renderRecords() {
+            const list = document.getElementById('recordsList');
+            const query = normalizeName(document.getElementById('searchBox').value);
+            const boatFilterNorm = normalizeName(document.getElementById('boatFilter').value);
+            const dateFilterVal = document.getElementById('dateFilter').value;
+
+            currentFilteredRecords = records.filter(r => {
+                if (statusFilter === 'unpaid' && r.isPaid) return false;
+                if (statusFilter === 'paid' && !r.isPaid) return false;
+                if (r.boatName == null || String(r.boatName).trim() === '') return false;
+                const rNorm = normalizeName(r.boatName);
+                if (query !== '' && !rNorm.includes(query)) return false;
+                if (boatFilterNorm !== '' && rNorm !== boatFilterNorm) return false;
+                if (!matchesDateRange(r.recordDate, dateFilterVal)) return false;
+                return true;
+            });
+
+            const unpaidInFiltered = currentFilteredRecords.filter(r => !r.isPaid);
+            const uniqueUnpaidBoats = new Set(unpaidInFiltered.map(r => normalizeName(r.boatName)));
+            const payAllBtn = document.getElementById('payAllBtn');
+            if (payAllBtn) {
+                payAllBtn.disabled = unpaidInFiltered.length === 0;
+                if (unpaidInFiltered.length > 0 && uniqueUnpaidBoats.size === 1) {
+                    payAllBtn.innerHTML = `<i class="ph ph-checks text-sm"></i><span>จ่ายทั้งลำ (${unpaidInFiltered.length} บิล)</span>`;
+                } else if (unpaidInFiltered.length > 0) {
+                    payAllBtn.innerHTML = `<i class="ph ph-checks text-sm"></i><span>จ่ายที่แสดง (${unpaidInFiltered.length})</span>`;
+                } else {
+                    payAllBtn.innerHTML = `<i class="ph ph-checks text-sm"></i><span>จ่ายที่แสดง</span>`;
+                }
+            }
+
+            const gTotal = currentFilteredRecords.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
+            document.getElementById('grandTotalInline').innerText = `฿${gTotal.toLocaleString('th-TH')}`;
+            document.getElementById('itemCountInline').innerText = `${currentFilteredRecords.length} บิล`;
+
+            if (!scriptUrl) {
+                list.innerHTML = `<div class="bg-white rounded-2xl border border-brown-200">${buildEmptyStateHtml('ยังไม่ได้เชื่อมต่อ Google Sheet', 'วางลิงก์ Apps Script ในตั้งค่าด้านบนเพื่อโหลดรายการบิล', 'ตั้งค่าลิงก์เดี๋ยวนี้', 'toggleSettings()')}</div>`;
+                return;
+            }
+
+            if (currentFilteredRecords.length === 0) {
+                list.innerHTML = `<div class="bg-white rounded-2xl border border-brown-200">${buildEmptyStateHtml('ไม่พบรายการบิลตามตัวกรอง', 'ลองเปลี่ยนตัวกรองสถานะ หรือกดลงบิลใหม่ได้เลย', 'ลงบิลคอมเรือใหม่', "switchWorkspacePane('record')")}</div>`;
+                return;
+            }
+
+            const boatUnpaidMap = getUnpaidStatsByBoat();
+            if (listViewMode === 'boats') {
+                renderBoatGroupedView(list, boatUnpaidMap);
+            } else {
+                list.innerHTML = currentFilteredRecords.map(item => buildBillCardHtml(item, boatUnpaidMap)).join('');
+            }
+        }
+
+        function buildBillCardHtml(item) {
+            const safeName = escapeHtml(item.boatName);
+            const idEsc = escapeHtml(item.id);
+            const totalNum = Number(item.total) || 0;
+            const isEditingThis = currentEditId && String(currentEditId) === String(item.id);
+
+            return `
+            <article class="bg-white rounded-2xl p-4 border ${isEditingThis ? 'border-brown-900 ring-1 ring-brown-900' : 'border-brown-200 hover:border-brown-300'}">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <h4 class="body-4 text-brown-950 truncate">${safeName}</h4>
+                            <span class="caption-5 text-brown-500 tabular-nums shrink-0">${formatDisplayDate(item.recordDate)}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            ${buildMinimalBreakdownTags(item)}
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="text-base font-semibold tabular-nums ${item.isPaid ? 'text-emerald-700' : 'text-brown-950'} block">฿${totalNum.toLocaleString('th-TH')}</span>
+                        <span class="caption-4 ${item.isPaid ? 'text-emerald-700' : 'text-brown-500'}">${item.isPaid ? 'จ่ายแล้ว' : 'ค้างจ่าย'}</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-brown-100">
+                    <div class="flex items-center gap-4">
+                        <button type="button" onclick="editRecord('${idEsc}')" class="caption-4 text-brown-600 hover:text-brown-950 inline-flex items-center gap-1 py-1 cursor-pointer">
+                            <i class="ph ph-pencil-simple text-sm"></i> แก้ไข
+                        </button>
+                        <button type="button" onclick="confirmDelete('${idEsc}')" class="caption-4 text-brown-500 hover:text-red-700 inline-flex items-center gap-1 py-1 cursor-pointer">
+                            <i class="ph ph-trash text-sm"></i> ลบ
+                        </button>
+                    </div>
+                    ${item.isPaid ? `
+                        <span class="inline-flex items-center gap-1 caption-4 text-emerald-700"><i class="ph ph-check text-sm"></i> เรียบร้อย</span>
+                    ` : `
+                        <button type="button" onclick="openSingleConfirm('${idEsc}')"
+                            class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-brown-900 hover:bg-emerald-700 text-white button-xsm cursor-pointer">
+                            <i class="ph ph-check text-sm"></i> จ่ายเงิน
+                        </button>
+                    `}
+                </div>
+            </article>`;
+        }
+
+        function renderBoatGroupedView(container, boatUnpaidMap = getUnpaidStatsByBoat()) {
+            const groups = new Map();
+            currentFilteredRecords.forEach(r => {
+                const nameStr = String(r.boatName).trim();
+                const norm = normalizeName(nameStr);
+                if (!groups.has(norm)) {
+                    groups.set(norm, {
+                        norm, boatName: nameStr, items: [],
+                        totalAmount: 0, unpaidAmount: 0, unpaidCount: 0,
+                        food: 0, jetBanana: 0, motorbike: 0, sunbedQty: 0, sunbedValue: 0, other: 0
+                    });
+                }
+                const g = groups.get(norm);
+                g.items.push(r);
+                const amt = parseFloat(r.total) || 0;
+                g.totalAmount += amt;
+                if (!r.isPaid) {
+                    g.unpaidAmount += amt;
+                    g.unpaidCount += 1;
+                }
+                g.food += parseFloat(r.food) || 0;
+                g.jetBanana += parseFloat(r.jetBanana) || 0;
+                g.motorbike += parseFloat(r.motorbike) || 0;
+                const sq = parseFloat(r.sunbedQty) || 0;
+                g.sunbedQty += sq;
+                g.sunbedValue += (parseFloat(r.sunbedValue) || (sq * 30));
+                g.other += parseFloat(r.other) || 0;
+            });
+
+            const sortedGroups = Array.from(groups.values()).sort((a, b) => b.unpaidAmount - a.unpaidAmount || b.totalAmount - a.totalAmount);
+            container.innerHTML = sortedGroups.map(g => {
+                const isExpanded = expandedBoatGroups.has(g.norm);
+                const safeBoat = escapeHtml(g.boatName);
+                const normEsc = escapeHtml(g.norm).replace(/'/g, "\\'");
+                return `
+                <div class="bg-white rounded-2xl border border-brown-200 overflow-hidden">
+                    <div class="p-4">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="title-4 font-semibold text-brown-950">${safeBoat}</h4>
+                                    <span class="px-2 py-0.5 rounded-md bg-brown-100 text-brown-800 caption-4 tabular-nums">${g.items.length} บิล</span>
+                                </div>
+                                <div class="flex flex-wrap gap-2 mt-2">${buildMinimalBreakdownTags(g)}</div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="text-base font-semibold text-brown-950 tabular-nums block">฿${g.totalAmount.toLocaleString('th-TH')}</span>
+                                <span class="caption-5 text-brown-500">${g.unpaidCount > 0 ? `ค้าง ${g.unpaidCount} บิล` : 'จ่ายครบแล้ว'}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-brown-100">
+                            <button type="button" onclick="toggleBoatGroupExpand('${normEsc}')"
+                                class="caption-4 text-brown-700 hover:text-brown-950 inline-flex items-center gap-1 cursor-pointer">
+                                <i class="ph ${isExpanded ? 'ph-caret-up' : 'ph-caret-down'} text-sm"></i>
+                                <span>${isExpanded ? 'ซ่อนบิลย่อย' : `ดูบิลย่อย (${g.items.length})`}</span>
+                            </button>
+                            ${g.unpaidCount > 0 ? `
+                                <button type="button" onclick="openBoatBulkConfirmFromAny('${normEsc}')"
+                                    class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white button-xsm cursor-pointer">
+                                    <i class="ph ph-checks text-sm"></i>
+                                    <span>จ่ายทั้งลำ (฿${g.unpaidAmount.toLocaleString('th-TH')})</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ${isExpanded ? `<div class="bg-brown-50 p-3 border-t border-brown-100 space-y-2">${g.items.map(item => buildBillCardHtml(item, boatUnpaidMap)).join('')}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function toggleBoatGroupExpand(norm) {
+            if (expandedBoatGroups.has(norm)) expandedBoatGroups.delete(norm);
+            else expandedBoatGroups.add(norm);
+            renderRecords();
+        }
+
+        function editRecord(id) {
+            const item = records.find(r => String(r.id) === String(id));
+            if (!item) return;
+            setEntryMode('single');
+            currentEditId = item.id;
+            document.getElementById('f-recordDate').value = item.recordDate ? formatForDatetimeLocal(item.recordDate) : getLocalDatetime();
+            document.getElementById('f-boatName').value = item.boatName;
+            document.getElementById('f-food').value = item.food || '';
+            document.getElementById('f-jetBanana').value = item.jetBanana || '';
+            document.getElementById('f-motorbike').value = item.motorbike || '';
+            document.getElementById('f-sunbedQty').value = item.sunbedQty || '';
+            document.getElementById('f-other').value = item.other || '';
+            document.getElementById('f-isPaid').checked = Boolean(item.isPaid);
+
+            document.getElementById('editBanner').classList.remove('hidden');
+            document.getElementById('editBannerSub').innerText = `แก้ไขบิล: ${item.boatName} (฿${Number(item.total).toLocaleString('th-TH')})`;
+            document.getElementById('botNavRecordLabel').innerText = 'แก้ไขบิล';
+            document.getElementById('topNavRecordLabel').innerText = 'แก้ไขบิล';
+            document.getElementById('wsRecordBtnText').innerText = 'แก้ไขบิล';
+
+            restoreSubmitButtonStyle();
+            updateTotal();
+            validateForm();
+            renderRecords();
+            navigateTo('record');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function formatForDatetimeLocal(dateStr) {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return getLocalDatetime();
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            return d.toISOString().slice(0, 16);
+        }
+
+        function cancelEdit() {
+            resetFormToNew();
+            renderRecords();
+        }
+
+        // --- Delete Confirmation ---
+        function confirmDelete(id) {
+            if (!ensureScriptUrlConfigured()) return;
+            const item = records.find(r => String(r.id) === String(id));
+            if (!item) return;
+            recordToDelete = item;
+            document.getElementById('deleteDesc').innerHTML = `ลบบิลเรือ <span class="font-semibold text-brown-950">${escapeHtml(item.boatName)}</span> ยอด <span class="font-semibold text-red-700">฿${Number(item.total).toLocaleString('th-TH')}</span> หรือไม่`;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        async function processDelete() {
+            if (!recordToDelete) return;
+            const target = recordToDelete;
+            closeModal('deleteModal');
+            setSyncIndicator('loading');
+
+            try {
+                const fd = new FormData();
+                fd.append('action', 'delete');
+                fd.append('id', target.id);
+                await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: fd });
+
+                records = records.filter(r => String(r.id) !== String(target.id));
+                if (currentEditId && String(currentEditId) === String(target.id)) resetFormToNew();
+                refreshAllViews();
+                setSyncIndicator('ok');
+                showStatus(`ลบบิลเรือ ${target.boatName} เรียบร้อย`);
+            } catch (e) {
+                setSyncIndicator('error');
+                showStatus('ลบบิลไม่สำเร็จ กรุณาลองใหม่', 'error');
+            } finally {
+                recordToDelete = null;
+            }
+        }
+
+        // --- Payment Confirmation ---
+        function openSingleConfirm(id) {
+            if (!ensureScriptUrlConfigured()) return;
+            const item = records.find(r => String(r.id) === String(id));
+            if (!item) return;
+            pendingPayment = { items: [item] };
+            document.getElementById('confirmTitle').innerText = "ยืนยันการจ่ายเงิน";
+            document.getElementById('confirmDesc').innerHTML = `เรือ <span class="font-semibold text-brown-950">${escapeHtml(item.boatName)}</span> ยอด <span class="text-emerald-700 font-semibold">฿${Number(item.total).toLocaleString('th-TH')}</span>`;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function openBulkConfirm() {
+            if (!ensureScriptUrlConfigured()) return;
+            const unpaid = currentFilteredRecords.filter(r => !r.isPaid);
+            if (unpaid.length === 0) return;
+            const sum = unpaid.reduce((acc, r) => acc + (parseFloat(r.total) || 0), 0);
+            pendingPayment = { items: unpaid };
+            document.getElementById('confirmTitle').innerText = "จ่ายทั้งหมดที่แสดง";
+            document.getElementById('confirmDesc').innerHTML = `เคลียร์ยอด ${unpaid.length} บิล รวมเป็นเงิน <span class="text-emerald-700 font-semibold">฿${sum.toLocaleString('th-TH')}</span>`;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function openBoatBulkConfirmFromAny(norm) {
+            if (!ensureScriptUrlConfigured()) return;
+            const unpaid = records.filter(r => !r.isPaid && normalizeName(r.boatName) === norm);
+            if (unpaid.length === 0) return;
+            const boatName = escapeHtml(unpaid[0].boatName);
+            const sum = unpaid.reduce((acc, r) => acc + (parseFloat(r.total) || 0), 0);
+            pendingPayment = { items: unpaid };
+            document.getElementById('confirmTitle').innerText = `เคลียร์ยอดเรือ ${boatName}`;
+            document.getElementById('confirmDesc').innerHTML = `จ่ายทั้งลำ ${unpaid.length} บิล รวม <span class="text-emerald-700 font-semibold">฿${sum.toLocaleString('th-TH')}</span>`;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        async function processPayment() {
+            closeModal('confirmModal');
+            const items = pendingPayment.items || [];
+            if (items.length === 0) return;
+
+            const overlay = document.getElementById('progressOverlay');
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            overlay.classList.remove('hidden');
+
+            let count = 0;
+            const total = items.length;
+            progressText.innerText = `0 / ${total}`;
+            progressBar.style.width = '0%';
+
+            try {
+                const BATCH_SIZE = 4;
+                for (let i = 0; i < items.length; i += BATCH_SIZE) {
+                    const batch = items.slice(i, i + BATCH_SIZE);
+                    await Promise.all(batch.map(async (item) => {
+                        const fd = new FormData();
+                        fd.append('action', 'update_paid');
+                        fd.append('id', item.id);
+                        await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: fd });
+                        item.isPaid = true;
+                        count++;
+                        progressText.innerText = `${count} / ${total}`;
+                        progressBar.style.width = `${(count / total) * 100}%`;
+                    }));
+                }
+                refreshAllViews();
+                showStatus(`บันทึกจ่ายเงิน ${total} บิลเรียบร้อย`);
+                setTimeout(() => fetchRecords(false), 1200);
+            } catch (err) {
+                showStatus('เกิดข้อผิดพลาดในการบันทึกบางรายการ', 'error');
+            } finally {
+                overlay.classList.add('hidden');
+                progressBar.style.width = '0%';
+                pendingPayment = { items: [] };
+            }
+        }
+
+        // --- LINE Summary Export ---
+        function openSummaryModal() {
+            const nowStr = new Date().toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+            const unpaidBills = records.filter(r => !r.isPaid);
+            const unpaidSum = unpaidBills.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
+
+            const boatMap = new Map();
+            unpaidBills.forEach(r => {
+                const name = String(r.boatName).trim();
+                const norm = normalizeName(name);
+                if (!boatMap.has(norm)) boatMap.set(norm, { name, total: 0, count: 0 });
+                const b = boatMap.get(norm);
+                b.total += (parseFloat(r.total) || 0);
+                b.count += 1;
+            });
+
+            const sortedBoats = Array.from(boatMap.values()).sort((a, b) => b.total - a.total);
+            const boatLines = sortedBoats.map((b, i) => `  ${i + 1}. ${b.name}: ฿${b.total.toLocaleString('th-TH')} (${b.count} บิล)`).join('\n');
+
+            lastLineSummaryText =
+`สรุปยอดค้างคอมเรือ Mokiza Com (${nowStr})
+━━━━━━━━━━━━━━━━━━
+ยอดค้างจ่ายรวม: ฿${unpaidSum.toLocaleString('th-TH')} (${unpaidBills.length} บิล / ${sortedBoats.length} ลำเรือ)
+
+แยกตามลำเรือที่ค้างจ่าย:
+${boatLines || '  ไม่มีรายการค้างจ่าย'}`;
+
+            document.getElementById('lineSummaryPreview').innerText = lastLineSummaryText;
+            document.getElementById('summaryModal').classList.remove('hidden');
+        }
+
+        async function copyLineSummary() {
+            try {
+                await navigator.clipboard.writeText(lastLineSummaryText);
+                showStatus('คัดลอกรายงานสำหรับส่ง LINE แล้ว');
+            } catch (e) {
+                showStatus('คัดลอกไม่สำเร็จ กรุณาคัดลอกข้อความด้วยตนเอง', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
